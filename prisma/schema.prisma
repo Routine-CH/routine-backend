@@ -6,9 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  relationMode = "prisma"
 }
 
 model User {
@@ -41,6 +41,7 @@ model UserLogins {
   userId   Int
   loginDate DateTime @default(now())
 
+  @@index ([userId])
   @@map("user_logins")
 }
 
@@ -56,6 +57,7 @@ model Journal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index ([userId])
   @@map("journals")
 }
 
@@ -72,6 +74,7 @@ model Goal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index ([userId])
   @@map("goals")
 }
 
@@ -86,6 +89,7 @@ model Task {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index ([userId])
   @@map("tasks")
 }
 
@@ -96,6 +100,7 @@ model PomodoroTimers {
   startedAt DateTime @default(now())
   stoppedAt DateTime @default(now())
 
+  @@index ([userId])
   @@map("pomodoro_timers")
 }
 
@@ -116,6 +121,8 @@ model Meditations {
   userId   Int
   startedAt DateTime @default(now())
   stoppedAt DateTime @default(now())
+
+    @@index ([userId])
 }
 
 model Badge {
@@ -137,7 +144,8 @@ model UserBadges {
   badgeId  Int
   assignedAt DateTime @default(now())
 
-
+  @@index ([userId])
+    @@index ([badgeId])
   @@map("user_badges")
   @@id([userId, badgeId])
 }
