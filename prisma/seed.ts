@@ -10,7 +10,7 @@ async function main() {
     create: {
       email: 'max.muster@gmail.com',
       username: 'Max',
-      password: '*************************************',
+      password: '123456',
       createdAt: new Date(),
     },
   });
