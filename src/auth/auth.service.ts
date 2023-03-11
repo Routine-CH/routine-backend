@@ -41,6 +41,31 @@ export class AuthService {
   // login logic
   async login(dto: LoginUserDto) {
     const { username, password } = dto;
+
+    // check if user already exists
+    const userAlreadyExists = await this.prisma.user.findUnique({
+      where: { username: username },
+    });
+    if (!userAlreadyExists) {
+      throw new BadRequestException(
+        `We couldn’t find an account matching the username you entered. Please check your username and try again.`,
+      );
+    }
+
+    // compare password
+    const isMatch = await this.comparePassword(
+      password,
+      userAlreadyExists.password,
+    );
+
+    if (!isMatch) {
+      throw new BadRequestException(
+        `We couldn’t find an account matching the username and password you entered. Please check your username and password and try again.`,
+      );
+    }
+
+    // sign jwt token and return to the user
+
     return { message: 'welcome back!' };
   }
 
@@ -52,7 +77,11 @@ export class AuthService {
   // hash password function
   async hashPassword(password: string) {
     const saltrounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltrounds);
-    return hashedPassword;
+    return await bcrypt.hash(password, saltrounds);
+  }
+
+  // helper function to compare password
+  async comparePassword(password: string, hashedPassword: string) {
+    return await bcrypt.compare(password, hashedPassword);
   }
 }
