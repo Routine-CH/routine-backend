@@ -16,7 +16,7 @@ async function main() {
   });
 
   const goal1 = await prisma.goal.upsert({
-    where: { id: 1 },
+    where: { id: '0f812163-4718-44e4-a01d-40f1b993968e' },
     update: {},
     create: {
       userId: user1.id,
@@ -32,7 +32,7 @@ async function main() {
   });
 
   const journal1 = await prisma.journal.upsert({
-    where: { id: 1 },
+    where: { id: 'f270cd80-c128-4834-8e30-8a1577c0d7f3' },
     update: {},
     create: {
       userId: user1.id,
@@ -47,7 +47,7 @@ async function main() {
   });
 
   const task1 = await prisma.task.upsert({
-    where: { id: 1 },
+    where: { id: 'f270cd80-c128-4834-8e30-8a1577c0d7f3' },
     update: {},
     create: {
       userId: user1.id,

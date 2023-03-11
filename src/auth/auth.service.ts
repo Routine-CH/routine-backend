@@ -1,11 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
+import { jwtSecret } from 'src/utils/constants';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
   // signup logic
   async signUp(dto: CreateUserDto) {
@@ -39,7 +46,7 @@ export class AuthService {
   }
 
   // login logic
-  async login(dto: LoginUserDto) {
+  async login(dto: LoginUserDto, req: Request, res: Response) {
     const { username, password } = dto;
 
     // check if user already exists
@@ -65,13 +72,25 @@ export class AuthService {
     }
 
     // sign jwt token and return to the user
+    const token = await this.signToken({
+      id: userAlreadyExists.id,
+      username: userAlreadyExists.username,
+    });
 
-    return { message: 'welcome back!' };
+    // if no token found
+    if (!token) {
+      throw new ForbiddenException();
+    }
+
+    res.cookie('token', token);
+
+    return res.send({ message: 'login succesful' });
   }
 
   // logout logic
-  async logout() {
-    return { message: 'see you soon' };
+  async logout(req: Request, res: Response) {
+    res.clearCookie('token');
+    return res.send({ message: 'logout succesful' });
   }
 
   // hash password function
@@ -83,5 +102,11 @@ export class AuthService {
   // helper function to compare password
   async comparePassword(password: string, hashedPassword: string) {
     return await bcrypt.compare(password, hashedPassword);
+  }
+
+  // helper function to sign jwt token
+  async signToken(args: { id: string; username: string }) {
+    const payload = args;
+    return this.jwt.signAsync(payload, { secret: jwtSecret });
   }
 }
