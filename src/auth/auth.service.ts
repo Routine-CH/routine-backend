@@ -6,13 +6,39 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
-import { jwtSecret } from 'src/utils/constants';
+import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
+
+  // validateUser
+  async validateUser(payload: LoginUserDto): Promise<LoginUserDto> {
+    return await this.prisma.user.findUnique({
+      where: { username: payload.username },
+    });
+  }
+
+  // validateRefreshToken
+  async validateRefreshToken(payload: LoginUserDto): Promise<LoginUserDto> {
+    return await this.prisma.user.findUnique({
+      where: { username: payload.username },
+    });
+  }
+
+  // refreshToken logic
+  async refreshToken(user: LoginUserDto) {
+    const payload = { sub: user.username };
+    return {
+      access_token: this.jwt.sign(payload),
+      refresh_token: this.jwt.sign(payload, {
+        expiresIn: '7d',
+        secret: jwtRefreshTokenSecret,
+      }),
+    };
+  }
 
   // signup logic
   async signUp(dto: CreateUserDto) {
