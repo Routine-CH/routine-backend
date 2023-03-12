@@ -50,20 +50,17 @@ export class AuthService {
     const { username, password } = dto;
 
     // check if user already exists
-    const userAlreadyExists = await this.prisma.user.findUnique({
+    const userExists = await this.prisma.user.findUnique({
       where: { username: username },
     });
-    if (!userAlreadyExists) {
+    if (!userExists) {
       throw new BadRequestException(
         `We couldn’t find an account matching the username you entered. Please check your username and try again.`,
       );
     }
 
     // compare password
-    const isMatch = await this.comparePassword(
-      password,
-      userAlreadyExists.password,
-    );
+    const isMatch = await this.comparePassword(password, userExists.password);
 
     if (!isMatch) {
       throw new BadRequestException(
@@ -71,20 +68,21 @@ export class AuthService {
       );
     }
 
-    // sign jwt token and return to the user
-    const token = await this.signToken({
-      id: userAlreadyExists.id,
-      username: userAlreadyExists.username,
-    });
+    if (userExists && isMatch) {
+      // sign jwt token and return to the user
+      const token = await this.signToken({
+        id: userExists.id,
+        username: userExists.username,
+      });
 
-    // if no token found
-    if (!token) {
-      throw new ForbiddenException();
+      // if no token found
+      if (!token) {
+        throw new ForbiddenException();
+      }
+
+      return res.send({ message: 'login succesful', token: token });
     }
-
-    res.cookie('token', token);
-
-    return res.send({ message: 'login succesful' });
+    return null;
   }
 
   // logout logic
@@ -107,6 +105,6 @@ export class AuthService {
   // helper function to sign jwt token
   async signToken(args: { id: string; username: string }) {
     const payload = args;
-    return this.jwt.signAsync(payload, { secret: jwtSecret });
+    return this.jwt.sign(payload, { secret: jwtSecret, expiresIn: '1d' });
   }
 }
