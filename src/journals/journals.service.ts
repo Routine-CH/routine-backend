@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateJournalDto } from './dto/journal.dto';
+import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 
 @Injectable()
 export class JournalsService {
   constructor(private prisma: PrismaService) {}
 
+  // Get single journal by id
   async getJournalById(id: string) {
-    return await this.prisma.journal.findUnique({
+    const journal = await this.prisma.journal.findUnique({
       where: { id: id },
       select: {
         id: true,
@@ -20,8 +26,15 @@ export class JournalsService {
         updatedAt: true,
       },
     });
+
+    if (!journal) {
+      throw new NotFoundException(`Oops! Journal doesn't.`);
+    }
+
+    return journal;
   }
 
+  // Get all journals
   async getJournals() {
     return await this.prisma.journal.findMany({
       select: {
@@ -37,10 +50,13 @@ export class JournalsService {
     });
   }
 
-  async createJournal(dto: CreateJournalDto, req: any, res: any) {
-    console.log(req.user.username);
-    const { title, mood, moodDescription, activity, toImprove } = dto;
+  // Create journal with the JWT token provided
+  async createJournal(createJournalDto: CreateJournalDto, req: any, res: any) {
+    const { title, mood, moodDescription, activity, toImprove } =
+      createJournalDto;
+    // get the user id from the JWT token
     const userId = req.user.id;
+    // create the journal
     const journal = await this.prisma.journal.create({
       data: {
         title,
@@ -52,5 +68,39 @@ export class JournalsService {
       },
     });
     return res.status(201).json(journal);
+  }
+
+  // Update journal
+  async updateJournal(
+    id: string,
+    updateJournalDto: UpdateJournalDto,
+    req: any,
+    res: any,
+  ) {
+    // find the journal to edit
+    const journalToEdit = await this.prisma.journal.findUnique({
+      where: { id },
+    });
+    // check if the user is the owner of the journal
+    if (req.user.id === journalToEdit.userId) {
+      const editJournal = await this.prisma.journal.update({
+        where: { id },
+        data: updateJournalDto,
+      });
+      // check if the journal was updated
+      if (editJournal) {
+        return res.status(200).json(editJournal);
+      } else {
+        // if the journal was not updated, throw an error
+        throw new BadRequestException(
+          'Something went wrong, please try again.',
+        );
+      }
+    } else {
+      // if the user is not the owner of the journal, throw an error
+      throw new UnauthorizedException(
+        'You are not authorized to edit this journal.',
+      );
+    }
   }
 }

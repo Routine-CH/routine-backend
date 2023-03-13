@@ -3,13 +3,14 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateJournalDto } from './dto/journal.dto';
+import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JournalsService } from './journals.service';
 
 @Controller('journals')
@@ -31,7 +32,23 @@ export class JournalsController {
   // Post journal
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async createJournal(@Body() dto: CreateJournalDto, @Req() req, @Res() res) {
-    return await this.journalsService.createJournal(dto, req, res);
+  async createJournal(
+    @Body() createJournalDto: CreateJournalDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return await this.journalsService.createJournal(createJournalDto, req, res);
+  }
+
+  // Edit journal
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async update(
+    @Param('id') id: string,
+    @Body() updateJournalDto: UpdateJournalDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.journalsService.updateJournal(id, updateJournalDto, req, res);
   }
 }
