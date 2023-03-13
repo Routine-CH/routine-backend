@@ -17,16 +17,25 @@ import { JournalsService } from './journals.service';
 export class JournalsController {
   constructor(private readonly journalsService: JournalsService) {}
 
+  // Get current week's journal
+  @Get('my-journey')
+  @UseGuards(AuthGuard('jwt'))
+  getSelectedWeekJournal(@Req() req: Request, @Res() res: Response) {
+    return this.journalsService.getJournalsBySelectedWeek(req, res);
+  }
+
   // Get journal by id
   @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
   getJournalById(@Param() params: { id: string }) {
     return this.journalsService.getJournalById(params.id);
   }
 
   // Get all journals
   @Get()
-  getJournals() {
-    return this.journalsService.getJournals();
+  @UseGuards(AuthGuard('jwt'))
+  async getJournals(@Req() req: Request, @Res() res: Response) {
+    return this.journalsService.getJournals(req, res);
   }
 
   // Post journal

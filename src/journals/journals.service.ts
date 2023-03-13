@@ -28,15 +28,17 @@ export class JournalsService {
     });
 
     if (!journal) {
-      throw new NotFoundException(`Oops! Journal doesn't.`);
+      throw new NotFoundException(`Oops! Journal doesn't exist.`);
     }
 
     return journal;
   }
 
   // Get all journals
-  async getJournals() {
-    return await this.prisma.journal.findMany({
+  async getJournals(req: any, res: any) {
+    const userId = req.user.id;
+    const allUserJounals = await this.prisma.journal.findMany({
+      where: { userId: userId },
       select: {
         id: true,
         title: true,
@@ -48,6 +50,7 @@ export class JournalsService {
         updatedAt: true,
       },
     });
+    return res.status(200).json(allUserJounals);
   }
 
   // Create journal with the JWT token provided
@@ -102,5 +105,39 @@ export class JournalsService {
         'You are not authorized to edit this journal.',
       );
     }
+  }
+
+  // Get journal by specific week
+  async getJournalsBySelectedWeek(req: any, res: any) {
+    // get the user id from the JWT token
+    const userId = req.user.id;
+
+    // parse the start and end dates of the selected week from the request body
+    const { startOfWeek, endOfWeek } = req.body;
+
+    // get the journals for the selected week
+    const journals = await this.prisma.journal.findMany({
+      where: {
+        userId: userId,
+        createdAt: {
+          gte: new Date(startOfWeek),
+          lte: new Date(endOfWeek),
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        mood: true,
+        moodDescription: true,
+        activity: true,
+        toImprove: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (!journals || journals.length === 0) {
+      throw new NotFoundException(`Oops! No journals found for this week.`);
+    }
+    return res.status(200).json(journals);
   }
 }
