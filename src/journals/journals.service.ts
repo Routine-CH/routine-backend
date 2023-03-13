@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateJournalDto } from './dto/journal.dto';
 
 @Injectable()
 export class JournalsService {
@@ -34,5 +35,22 @@ export class JournalsService {
         updatedAt: true,
       },
     });
+  }
+
+  async createJournal(dto: CreateJournalDto, req: any, res: any) {
+    console.log(req.user.username);
+    const { title, mood, moodDescription, activity, toImprove } = dto;
+    const userId = req.user.id;
+    const journal = await this.prisma.journal.create({
+      data: {
+        title,
+        mood,
+        moodDescription,
+        activity,
+        toImprove,
+        user: { connect: { id: userId } },
+      },
+    });
+    return res.status(201).json(journal);
   }
 }
