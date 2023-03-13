@@ -11,7 +11,7 @@ import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 export class JournalsService {
   constructor(private prisma: PrismaService) {}
 
-  // Get single journal by id
+  // get single journal by id
   async getJournalById(id: string) {
     const journal = await this.prisma.journal.findUnique({
       where: { id: id },
@@ -23,7 +23,6 @@ export class JournalsService {
         activity: true,
         toImprove: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
@@ -34,7 +33,7 @@ export class JournalsService {
     return journal;
   }
 
-  // Get all journals
+  // get all journals
   async getJournals(req: any, res: any) {
     const userId = req.user.id;
     const allUserJounals = await this.prisma.journal.findMany({
@@ -42,18 +41,18 @@ export class JournalsService {
       select: {
         id: true,
         title: true,
-        mood: true,
-        moodDescription: true,
-        activity: true,
-        toImprove: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
+
+    if (!allUserJounals || allUserJounals.length === 0) {
+      throw new NotFoundException(`Oops! You don't have any journals yet.`);
+    }
+
     return res.status(200).json(allUserJounals);
   }
 
-  // Create journal with the JWT token provided
+  // create journal with the JWT token provided
   async createJournal(createJournalDto: CreateJournalDto, req: any, res: any) {
     const { title, mood, moodDescription, activity, toImprove } =
       createJournalDto;
@@ -70,10 +69,15 @@ export class JournalsService {
         user: { connect: { id: userId } },
       },
     });
-    return res.status(201).json(journal);
+
+    if (journal) {
+      return res.status(201).json({ message: 'Journal created successfully.' });
+    } else {
+      throw new BadRequestException('Something went wrong, please try again.');
+    }
   }
 
-  // Update journal
+  // update journal
   async updateJournal(
     id: string,
     updateJournalDto: UpdateJournalDto,
@@ -84,6 +88,12 @@ export class JournalsService {
     const journalToEdit = await this.prisma.journal.findUnique({
       where: { id },
     });
+
+    // implement a check to see if the journal exists
+    if (!journalToEdit) {
+      throw new NotFoundException('Journal not found.');
+    }
+
     // check if the user is the owner of the journal
     if (req.user.id === journalToEdit.userId) {
       const editJournal = await this.prisma.journal.update({
@@ -92,7 +102,9 @@ export class JournalsService {
       });
       // check if the journal was updated
       if (editJournal) {
-        return res.status(200).json(editJournal);
+        return res
+          .status(200)
+          .json({ message: 'Journal updated successfully.' });
       } else {
         // if the journal was not updated, throw an error
         throw new BadRequestException(
@@ -107,7 +119,42 @@ export class JournalsService {
     }
   }
 
-  // Get journal by specific week
+  // get journals by specific date
+  async getJournalsBySelectedDay(req: any, res: any) {
+    // get the user id from the JWT token
+    const userId = req.user.id;
+
+    // parse the selected date from the request body
+    const { selectedDate } = req.body;
+    // get the start and end of the selected date
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // get the journals for the selected date
+    const journals = await this.prisma.journal.findMany({
+      where: {
+        userId: userId,
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+      },
+    });
+    if (!journals || journals.length === 0) {
+      throw new NotFoundException(`Oops! No journals found for this day.`);
+    }
+    return res.status(200).json(journals);
+  }
+
+  // get journals by specific week
   async getJournalsBySelectedWeek(req: any, res: any) {
     // get the user id from the JWT token
     const userId = req.user.id;
@@ -127,17 +174,55 @@ export class JournalsService {
       select: {
         id: true,
         title: true,
-        mood: true,
-        moodDescription: true,
-        activity: true,
-        toImprove: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
     if (!journals || journals.length === 0) {
       throw new NotFoundException(`Oops! No journals found for this week.`);
     }
     return res.status(200).json(journals);
+  }
+
+  // delete journal
+  async deleteJournal(id: string, req: any, res: any) {
+    // find the journal to delete
+    const journalToDelete = await this.prisma.journal.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        title: true,
+      },
+    });
+    // check if the user is the owner of the journal
+    if (req.user.id === journalToDelete.userId) {
+      const deleteJournal = await this.prisma.journal.delete({
+        where: { id },
+      });
+      // check if the journal was deleted
+      if (deleteJournal) {
+        if (res) {
+          return res.status(200).json({
+            message: 'Journal was succesfully deleted',
+            deleteJournal: deleteJournal,
+          });
+        } else {
+          return {
+            message: `Journal ${journalToDelete.title} was succesfully deleted`,
+            deleteJournal: deleteJournal,
+          };
+        }
+      } else {
+        // if the journal was not deleted, throw an error
+        throw new BadRequestException(
+          'Something went wrong, please try again.',
+        );
+      }
+    } else {
+      // if the user is not the owner of the journal, throw an error
+      throw new UnauthorizedException(
+        'You are not authorized to delete this journal.',
+      );
+    }
   }
 }
