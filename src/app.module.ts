@@ -8,9 +8,10 @@ import { PrismaService } from './prisma/prisma.service';
 import { UsersModule } from './users/users.module';
 import { JournalsModule } from './journals/journals.module';
 import { GoalsModule } from './goals/goals.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, JournalsModule, GoalsModule],
+  imports: [PrismaModule, UsersModule, AuthModule, JournalsModule, GoalsModule, TasksModule],
   controllers: [AppController],
   providers: [
     AppService,

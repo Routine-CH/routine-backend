@@ -18,7 +18,7 @@ import { GoalsService } from './goals.service';
 export class GoalsController {
   constructor(private readonly goalsService: GoalsService) {}
 
-  // get current week's goal
+  // get all goals by selected week
   @Get('week')
   @UseGuards(AuthGuard('jwt'))
   getSelectedWeekGoals(@Req() req: Request, @Res() res: Response) {
