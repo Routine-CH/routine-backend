@@ -7,9 +7,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { UsersModule } from './users/users.module';
 import { JournalsModule } from './journals/journals.module';
+import { GoalsModule } from './goals/goals.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, JournalsModule],
+  imports: [PrismaModule, UsersModule, AuthModule, JournalsModule, GoalsModule],
   controllers: [AppController],
   providers: [
     AppService,

@@ -25,9 +25,9 @@ export class JournalsService {
         createdAt: true,
       },
     });
-
+    // if no journal is found, throw an error
     if (!journal) {
-      throw new NotFoundException(`Oops! Journal doesn't exist.`);
+      throw new BadRequestException('Something went wrong. Please try again.');
     }
 
     return journal;
@@ -35,7 +35,10 @@ export class JournalsService {
 
   // get all journals
   async getJournals(req: any, res: any) {
+    // get the user id from the JWT token
     const userId = req.user.id;
+
+    // get all journals
     const allUserJounals = await this.prisma.journal.findMany({
       where: { userId: userId },
       select: {
@@ -45,6 +48,7 @@ export class JournalsService {
       },
     });
 
+    // if no journals are found, throw an error
     if (!allUserJounals || allUserJounals.length === 0) {
       throw new NotFoundException(`Oops! You don't have any journals yet.`);
     }
@@ -69,7 +73,7 @@ export class JournalsService {
         user: { connect: { id: userId } },
       },
     });
-
+    // check if the journal was created
     if (journal) {
       return res.status(201).json({ message: 'Journal created successfully.' });
     } else {
@@ -96,6 +100,7 @@ export class JournalsService {
 
     // check if the user is the owner of the journal
     if (req.user.id === journalToEdit.userId) {
+      // update the journal
       const editJournal = await this.prisma.journal.update({
         where: { id },
         data: updateJournalDto,
@@ -124,7 +129,7 @@ export class JournalsService {
     // get the user id from the JWT token
     const userId = req.user.id;
 
-    // parse the selected date from the request body
+    // parse the selected day from the request body
     const { selectedDate } = req.body;
     // get the start and end of the selected date
     const startOfDay = new Date(selectedDate);
@@ -148,6 +153,7 @@ export class JournalsService {
         createdAt: true,
       },
     });
+    // if no journals are found, throw an error
     if (!journals || journals.length === 0) {
       throw new NotFoundException(`Oops! No journals found for this day.`);
     }
@@ -177,6 +183,7 @@ export class JournalsService {
         createdAt: true,
       },
     });
+    // if no journals are found, throw an error
     if (!journals || journals.length === 0) {
       throw new NotFoundException(`Oops! No journals found for this week.`);
     }
@@ -196,6 +203,7 @@ export class JournalsService {
     });
     // check if the user is the owner of the journal
     if (req.user.id === journalToDelete.userId) {
+      // delete the journal
       const deleteJournal = await this.prisma.journal.delete({
         where: { id },
       });
