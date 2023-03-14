@@ -21,14 +21,14 @@ export class JournalsController {
   // Get current week's journal
   @Get('week')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedWeekJournal(@Req() req: Request, @Res() res: Response) {
+  getSelectedWeekJournals(@Req() req: Request, @Res() res: Response) {
     return this.journalsService.getJournalsBySelectedWeek(req, res);
   }
 
   // Get all journals by selected day
   @Get('day')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedDayJournal(@Req() req: Request, @Res() res: Response) {
+  getSelectedDayJournals(@Req() req: Request, @Res() res: Response) {
     return this.journalsService.getJournalsBySelectedDay(req, res);
   }
 
@@ -60,7 +60,7 @@ export class JournalsController {
   // Edit journal
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  async update(
+  async updateJournal(
     @Param('id') id: string,
     @Body() updateJournalDto: UpdateJournalDto,
     @Req() req: Request,
@@ -72,7 +72,11 @@ export class JournalsController {
   // Delete journal
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  async delete(@Param('id') id: string, @Req() req: Request, res: Response) {
+  async deleteJournal(
+    @Param('id') id: string,
+    @Req() req: Request,
+    res: Response,
+  ) {
     return this.journalsService.deleteJournal(id, req, res);
   }
 }
