@@ -211,7 +211,7 @@ export class JournalsService {
       if (deleteJournal) {
         if (res) {
           return res.status(200).json({
-            message: 'Journal was succesfully deleted',
+            message: `Journal ${journalToDelete.title} was succesfully deleted`,
             deleteJournal: deleteJournal,
           });
         } else {

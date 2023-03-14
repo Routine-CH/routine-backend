@@ -18,7 +18,7 @@ import { JournalsService } from './journals.service';
 export class JournalsController {
   constructor(private readonly journalsService: JournalsService) {}
 
-  // Get current week's journal
+  // Get all journals by selected week
   @Get('week')
   @UseGuards(AuthGuard('jwt'))
   getSelectedWeekJournals(@Req() req: Request, @Res() res: Response) {

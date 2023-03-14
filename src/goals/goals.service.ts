@@ -221,12 +221,12 @@ export class GoalsService {
       if (deleteGoal) {
         if (res) {
           return res.status(200).json({
-            message: 'Goal deleted successfully.',
+            message: `Goal ${goalToDelete.title} was succesfully deleted.`,
             deleteGoal: deleteGoal,
           });
         } else {
           return {
-            message: `Goal ${goalToDelete.title} successfully.`,
+            message: `Goal ${goalToDelete.title} was succesfully deleted.`,
             deleteGoal: deleteGoal,
           };
         }
