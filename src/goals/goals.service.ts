@@ -4,7 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateGoalDto, UpdateGoalDto } from './dto/goal.dto';
+import { S3Service } from './../s3/s3.service';
+import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 
 @Injectable()
 export class GoalsService {
@@ -127,10 +128,29 @@ export class GoalsService {
   }
 
   // create goal with the JWT token provided
-  async createGoal(createGoalDto: CreateGoalDto, req: any, res: any) {
-    const { title, imageUrl, description, importance, vision } = createGoalDto;
+  async createGoal(
+    buffer: Buffer | undefined,
+    mimetype: string | undefined,
+    originalname: string | undefined,
+    createGoalDto: CreateGoalRequestDto,
+    req: any,
+    res: any,
+    s3Service: S3Service,
+  ) {
+    const { title, description, importance, vision } = createGoalDto;
     // get the user id from the JWT token
     const userId = req.user.id;
+
+    // Initialize imageUrl as emtpy string or undefined
+    let imageUrl: string | undefined;
+
+    // check if the user has uploaded an image
+    if (buffer && mimetype && originalname) {
+      // upload image to s3 and get the image url
+      const key = `goals/${Date.now()}-${originalname}`;
+      imageUrl = await s3Service.uploadImage(buffer, mimetype, key);
+    }
+    console.log(imageUrl);
     // create the goal
     const goal = await this.prisma.goal.create({
       data: {

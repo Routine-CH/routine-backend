@@ -8,15 +8,25 @@ import {
   Post,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateGoalDto, UpdateGoalDto } from './dto/goal.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Request, Response } from 'express';
+import { promises as fs } from 'fs';
+import { diskStorage } from 'multer';
+import { S3Service } from 'src/s3/s3.service';
+import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 import { GoalsService } from './goals.service';
 
 @Controller('goals')
 export class GoalsController {
-  constructor(private readonly goalsService: GoalsService) {}
+  constructor(
+    private readonly goalsService: GoalsService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   // get all goals by selected week
   @Get('week')
@@ -49,12 +59,23 @@ export class GoalsController {
   // post goal
   @Post()
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async createGoal(
-    @Body() createGoalDto: CreateGoalDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createGoalDto: CreateGoalRequestDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return await this.goalsService.createGoal(createGoalDto, req, res);
+    const buffer = file ? await fs.readFile(file.path) : undefined;
+    return await this.goalsService.createGoal(
+      buffer,
+      file?.mimetype,
+      file?.originalname,
+      createGoalDto,
+      req,
+      res,
+      this.s3Service,
+    );
   }
 
   // edit goal

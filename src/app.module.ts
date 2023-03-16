@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { JournalsModule } from './journals/journals.module';
 import { GoalsModule } from './goals/goals.module';
 import { TasksModule } from './tasks/tasks.module';
+import { S3Service } from './s3/s3.service';
 
 @Module({
   imports: [PrismaModule, UsersModule, AuthModule, JournalsModule, GoalsModule, TasksModule],
@@ -17,6 +18,7 @@ import { TasksModule } from './tasks/tasks.module';
     AppService,
     PrismaService,
     { provide: 'APP_GUARD', useClass: JwtAuthGuard },
+    S3Service,
   ],
 })
 export class AppModule {}
