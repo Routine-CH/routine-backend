@@ -1,5 +1,31 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+
+export class CreateGoalRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(5)
+  @ApiProperty()
+  public title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(5)
+  @ApiProperty()
+  public description: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(5)
+  @ApiProperty()
+  public importance: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(5)
+  @ApiProperty()
+  public vision: string;
+}
 
 export class CreateGoalDto {
   @IsString()
@@ -9,7 +35,7 @@ export class CreateGoalDto {
   public title: string;
 
   @IsString()
-  @ApiProperty()
+  @ApiProperty({ required: false })
   public imageUrl?: string;
 
   @IsString()
@@ -30,9 +56,8 @@ export class CreateGoalDto {
   @ApiProperty()
   public vision: string;
 
-  @IsBoolean()
-  @ApiProperty()
-  public completed?: boolean;
+  @ApiProperty({ required: false })
+  public completed?: string;
 }
 
 export class UpdateGoalDto extends PartialType(CreateGoalDto) {}

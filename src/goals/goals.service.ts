@@ -4,11 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateGoalDto, UpdateGoalDto } from './dto/goal.dto';
+import { S3Service } from './../s3/s3.service';
+import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 
 @Injectable()
 export class GoalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
   // get goals by selected week
   async getGoalsBySelectedWeek(req: any, res: any) {
@@ -97,6 +98,12 @@ export class GoalsService {
     if (!goal) {
       throw new BadRequestException('Something went wrong. Please try again.');
     }
+
+    // generate a signed url for the image if extists
+    if (goal.imageUrl) {
+      const key = goal.imageUrl.split('.amazonaws.com/')[1];
+      goal.imageUrl = await this.s3Service.getSignedUrl(key);
+    }
     return goal;
   }
 
@@ -127,10 +134,34 @@ export class GoalsService {
   }
 
   // create goal with the JWT token provided
-  async createGoal(createGoalDto: CreateGoalDto, req: any, res: any) {
-    const { title, imageUrl, description, importance, vision } = createGoalDto;
+  async createGoal(
+    buffer: Buffer | undefined,
+    mimetype: string | undefined,
+    originalname: string | undefined,
+    createGoalDto: CreateGoalRequestDto,
+    req: any,
+    res: any,
+    s3Service: S3Service,
+  ) {
+    const { title, description, importance, vision } = createGoalDto;
     // get the user id from the JWT token
     const userId = req.user.id;
+
+    // fetch the user from the database
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    // Initialize imageUrl as emtpy string or undefined
+    let imageUrl: string | undefined;
+
+    // check if the user has uploaded an image
+    if (buffer && mimetype && originalname) {
+      // upload image to s3 and get the image url
+      const key = `${user.username}/goals/${Date.now()}-${originalname}`;
+      imageUrl = await s3Service.uploadImage(buffer, mimetype, key);
+    }
+
     // create the goal
     const goal = await this.prisma.goal.create({
       data: {
@@ -154,6 +185,9 @@ export class GoalsService {
   // update goal
   async updateGoal(
     id: string,
+    buffer: Buffer | undefined,
+    mimetype: string | undefined,
+    originalname: string | undefined,
     updateGoalDto: UpdateGoalDto,
     req: any,
     res: any,
@@ -172,12 +206,32 @@ export class GoalsService {
 
     // check if the user is the owner of the goal
     if (req.user.id === goalToEdit.userId) {
+      //convert completed field to boolean
+      const updatedData = {
+        ...updateGoalDto,
+        completed: updateGoalDto.completed === 'true' ? true : false,
+      };
+
+      // initialize imageUrl as existing  or undefined
+      let imageUrl: string | undefined = goalToEdit.imageUrl;
+
+      // check if a new image is provided, delete the old image and upload the new image
+      if (buffer && mimetype && originalname) {
+        if (imageUrl) {
+          const oldKey = imageUrl.split('.amazonaws.com/')[1];
+          await this.s3Service.deleteImage(oldKey);
+        }
+        const username = req.user.username;
+        const key = `${username}/goals/${Date.now()}-${originalname}`;
+        imageUrl = await this.s3Service.uploadImage(buffer, mimetype, key);
+      }
+
       // update the goal
       const editGoal = await this.prisma.goal.update({
         where: {
           id: id,
         },
-        data: updateGoalDto,
+        data: { ...updatedData, imageUrl },
       });
       // check if goal was updated
       if (editGoal) {
@@ -207,10 +261,20 @@ export class GoalsService {
         id: true,
         userId: true,
         title: true,
+        imageUrl: true,
       },
     });
     // check if the user is the owner of the goal
     if (req.user.id === goalToDelete.userId) {
+      // initialize imageUrl as existing  or undefined
+      const imageUrl: string | undefined = goalToDelete.imageUrl;
+
+      // check if the goal has an image, delete the image
+      if (imageUrl) {
+        const key = imageUrl.split('.amazonaws.com/')[1];
+        await this.s3Service.deleteImage(key);
+      }
+
       // delete the goal
       const deleteGoal = await this.prisma.goal.delete({
         where: {
