@@ -9,7 +9,7 @@ import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 
 @Injectable()
 export class GoalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
   // get goals by selected week
   async getGoalsBySelectedWeek(req: any, res: any) {
@@ -98,6 +98,12 @@ export class GoalsService {
     if (!goal) {
       throw new BadRequestException('Something went wrong. Please try again.');
     }
+
+    // generate a signed url for the image if extists
+    if (goal.imageUrl) {
+      const key = goal.imageUrl.split('.amazonaws.com/')[1];
+      goal.imageUrl = await this.s3Service.getSignedUrl(key);
+    }
     return goal;
   }
 
@@ -141,13 +147,18 @@ export class GoalsService {
     // get the user id from the JWT token
     const userId = req.user.id;
 
+    // fetch the user from the database
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
     // Initialize imageUrl as emtpy string or undefined
     let imageUrl: string | undefined;
 
     // check if the user has uploaded an image
     if (buffer && mimetype && originalname) {
       // upload image to s3 and get the image url
-      const key = `goals/${Date.now()}-${originalname}`;
+      const key = `${user.username}/goals/${Date.now()}-${originalname}`;
       imageUrl = await s3Service.uploadImage(buffer, mimetype, key);
     }
     console.log(imageUrl);

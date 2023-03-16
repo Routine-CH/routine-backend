@@ -10,6 +10,7 @@ export class S3Service {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       region: process.env.AWS_REGION,
+      signatureVersion: 'v4',
     });
   }
 
@@ -23,10 +24,20 @@ export class S3Service {
       Key: key,
       Body: buffer,
       ContentType: mimetype,
+      ServerSideEncryption: 'aws:kms',
     };
 
     await this.s3.upload(params).promise();
 
     return `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${key}`;
+  }
+
+  async getSignedUrl(key: string): Promise<string> {
+    const params: AWS.S3.GetObjectRequest = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+    };
+
+    return this.s3.getSignedUrlPromise('getObject', params);
   }
 }
