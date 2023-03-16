@@ -81,13 +81,24 @@ export class GoalsController {
   // edit goal
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async updateGoal(
     @Param('id') id: string,
     @Body() updateGoalDto: UpdateGoalDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return await this.goalsService.updateGoal(id, updateGoalDto, req, res);
+    const buffer = file ? await fs.readFile(file.path) : undefined;
+    return await this.goalsService.updateGoal(
+      id,
+      buffer,
+      file?.mimetype,
+      file?.originalname,
+      updateGoalDto,
+      req,
+      res,
+    );
   }
 
   // delete goal

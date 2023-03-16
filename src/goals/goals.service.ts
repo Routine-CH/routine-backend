@@ -161,7 +161,7 @@ export class GoalsService {
       const key = `${user.username}/goals/${Date.now()}-${originalname}`;
       imageUrl = await s3Service.uploadImage(buffer, mimetype, key);
     }
-    console.log(imageUrl);
+
     // create the goal
     const goal = await this.prisma.goal.create({
       data: {
@@ -185,6 +185,9 @@ export class GoalsService {
   // update goal
   async updateGoal(
     id: string,
+    buffer: Buffer | undefined,
+    mimetype: string | undefined,
+    originalname: string | undefined,
     updateGoalDto: UpdateGoalDto,
     req: any,
     res: any,
@@ -203,12 +206,32 @@ export class GoalsService {
 
     // check if the user is the owner of the goal
     if (req.user.id === goalToEdit.userId) {
+      //convert completed field to boolean
+      const updatedData = {
+        ...updateGoalDto,
+        completed: updateGoalDto.completed === 'true' ? true : false,
+      };
+
+      // initialize imageUrl as existing  or undefined
+      let imageUrl: string | undefined = goalToEdit.imageUrl;
+
+      // check if a new image is provided, delete the old image and upload the new image
+      if (buffer && mimetype && originalname) {
+        if (imageUrl) {
+          const oldKey = imageUrl.split('.amazonaws.com/')[1];
+          await this.s3Service.deleteImage(oldKey);
+        }
+        const username = req.user.username;
+        const key = `${username}/goals/${Date.now()}-${originalname}`;
+        imageUrl = await this.s3Service.uploadImage(buffer, mimetype, key);
+      }
+
       // update the goal
       const editGoal = await this.prisma.goal.update({
         where: {
           id: id,
         },
-        data: updateGoalDto,
+        data: { ...updatedData, imageUrl },
       });
       // check if goal was updated
       if (editGoal) {

@@ -40,4 +40,13 @@ export class S3Service {
 
     return this.s3.getSignedUrlPromise('getObject', params);
   }
+
+  async deleteImage(key: string): Promise<void> {
+    const params: AWS.S3.DeleteObjectRequest = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+    };
+
+    await this.s3.deleteObject(params).promise();
+  }
 }
