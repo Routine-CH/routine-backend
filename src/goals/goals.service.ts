@@ -261,10 +261,20 @@ export class GoalsService {
         id: true,
         userId: true,
         title: true,
+        imageUrl: true,
       },
     });
     // check if the user is the owner of the goal
     if (req.user.id === goalToDelete.userId) {
+      // initialize imageUrl as existing  or undefined
+      const imageUrl: string | undefined = goalToDelete.imageUrl;
+
+      // check if the goal has an image, delete the image
+      if (imageUrl) {
+        const key = imageUrl.split('.amazonaws.com/')[1];
+        await this.s3Service.deleteImage(key);
+      }
+
       // delete the goal
       const deleteGoal = await this.prisma.goal.delete({
         where: {
