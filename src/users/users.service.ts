@@ -87,7 +87,13 @@ export class UsersService {
     }
 
     // updateData spread the updateUserDto and add the avatarUrl
-    const updateData: Record<string, any> = { ...updateUserDto, avatarUrl };
+    const updateData: Record<string, any> = {
+      ...(updateUserDto.email !== undefined && { email: updateUserDto.email }),
+      ...(updateUserDto.username !== undefined && {
+        username: updateUserDto.username,
+      }),
+      avatarUrl,
+    };
 
     // check if user is trying to update the password
     if (updateUserDto.oldPassword && updateUserDto.newPassword) {
@@ -101,10 +107,10 @@ export class UsersService {
       }
 
       const hashedPassword = await bcrypt.hash(updateUserDto.newPassword, 10);
-      updateUserDto.password = hashedPassword;
+      updateData.password = hashedPassword;
     }
 
-    // check if user is trying to update the userna,e
+    // check if user is trying to update the username
     if (updateUserDto.username) {
       const existingUsername = await this.prisma.user.findUnique({
         where: { username: updateUserDto.username },

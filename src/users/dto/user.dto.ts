@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateUserDto {
   @IsEmail()
@@ -16,10 +22,12 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(8)
   @IsOptional()
+  @ValidateIf((o) => o.oldPassword !== undefined && o.newPassword !== null)
   oldPassword?: string;
 
   @IsString()
   @MinLength(8)
   @IsOptional()
+  @ValidateIf((o) => o.newPassword !== undefined && o.newPassword !== null)
   newPassword?: string;
 }

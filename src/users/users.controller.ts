@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request, Response } from 'express';
 import { promises as fs } from 'fs';
+import { diskStorage } from 'multer';
 import { UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
@@ -31,9 +32,9 @@ export class UsersController {
     return this.usersService.getUsers();
   }
 
-  @Patch(':id ')
+  @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('avatar', { storage: diskStorage({}) }))
   async updateUser(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,

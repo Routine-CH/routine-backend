@@ -11,6 +11,8 @@ async function bootstrap() {
     new ValidationPipe({
       // only validate the properties that are defined in the DTO
       whitelist: true,
+      // skip missing properties
+      skipMissingProperties: true,
     }),
   );
 
