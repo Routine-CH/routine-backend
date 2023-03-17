@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { UpdateUserDto } from './dto/user.dto';
@@ -23,8 +22,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get(':id')
-  getUserById(@Param() params: { id: string }) {
-    return this.usersService.getUserById(params.id);
+  getUserById(@Param('id') id: string) {
+    return this.usersService.getUserById(id);
   }
 
   @Get()

@@ -21,7 +21,7 @@ export class UsersService {
   constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
   async getUserById(id: string) {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: id },
       select: {
         id: true,
@@ -31,6 +31,18 @@ export class UsersService {
         badges: true,
       },
     });
+    // if no user is found, throw an error
+    if (!user) {
+      throw new BadRequestException('Something went wrong. Please try again.');
+    }
+
+    // generate a signed url for the image if exists
+    if (user.avatarUrl) {
+      const key = user.avatarUrl.split('.amazonaws.com/')[1];
+      user.avatarUrl = await this.s3Service.getSignedUrl(key);
+    }
+
+    return user;
   }
 
   async getUsers() {
@@ -58,7 +70,7 @@ export class UsersService {
     const userId = req.user.id;
 
     // get user from the database
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({ where: { id: id } });
 
     // if no user is found, throw an error
     if (!user) {
@@ -66,7 +78,7 @@ export class UsersService {
     }
 
     // check if userId from token equals the id from the request params
-    if (user.id !== id) {
+    if (user.id !== userId) {
       throw new BadRequestException(
         'You are not authorized to edit this profile.',
       );
