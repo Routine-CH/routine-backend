@@ -122,7 +122,7 @@ model Meditations {
   startedAt DateTime @default(now())
   stoppedAt DateTime @default(now())
 
-    @@index ([userId])
+  @@index ([userId])
 }
 
 model Badge {
@@ -145,7 +145,7 @@ model UserBadges {
   assignedAt DateTime @default(now())
 
   @@index ([userId])
-    @@index ([badgeId])
+  @@index ([badgeId])
   @@map("user_badges")
   @@id([userId, badgeId])
 }
