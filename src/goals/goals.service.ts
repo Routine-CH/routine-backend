@@ -297,7 +297,7 @@ export class GoalsService {
       } else {
         // if the goal was not deleted, throw an error
         throw new BadRequestException(
-          'Something went wrong. Please try again.',
+          'Oops! Something went wrong. Please try again',
         );
       }
     } else {

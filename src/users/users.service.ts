@@ -163,4 +163,54 @@ export class UsersService {
       throw new BadRequestException('Oops! Something went wrong.');
     }
   }
+
+  // delete user
+  async deleteUser(id: string, req: any, res: any) {
+    // get user from the database
+    const user = await this.prisma.user.findUnique({ where: { id: id } });
+
+    // check if user is the user
+    if (req.user.id === user.id) {
+      // initialize the avatarUrl as existing or undefined
+      const avatarUrl: string | undefined = user.avatarUrl;
+
+      // check if user has an avater, delete avatar
+      if (avatarUrl) {
+        const key = avatarUrl.split('.amazonaws.com/')[1];
+        await this.s3Service.deleteImage(key);
+      }
+
+      // delete user
+      const deleteUser = await this.prisma.user.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      //check if user was deleted
+      if (deleteUser) {
+        if (res) {
+          return res.status(200).json({
+            message: 'User deleted successfully',
+            deletedUser: deleteUser,
+          });
+        } else {
+          return {
+            message: 'User deleted successfully',
+            deletedUser: deleteUser,
+          };
+        }
+      } else {
+        // if user was not deleted, throw an error
+        throw new BadRequestException(
+          'Oops! Something went wrong. Please try again',
+        );
+      }
+    } else {
+      // if user is not the user, throw an error
+      throw new BadRequestException(
+        'You are not authorized to delete this profile.',
+      );
+    }
+  }
 }
