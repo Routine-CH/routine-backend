@@ -131,8 +131,39 @@ export class UsersService {
       if (existingUsername) {
         throw new BadRequestException('Username already taken');
       }
-
+      // update the username in updateData
       updateData.username = updateUserDto.username;
+
+      // move the user's files to the new folder
+      if (user.username !== updateUserDto.username) {
+        const folders = ['avatars', 'goals'];
+
+        // iteratre through folders
+        for (const folder of folders) {
+          const oldFolder = `${user.username}/${folder}/`;
+          const newFolder = `${updateUserDto.username}/${folder}/`;
+
+          // list all files in the old folder
+          const objects = await this.s3Service.listObjects(oldFolder);
+
+          // copy each file to the new folder
+          for (const object of objects) {
+            const oldKey = object.Key;
+            const newKey = oldKey.replace(oldFolder, newFolder);
+            await this.s3Service.copyObject(oldKey, newKey);
+          }
+
+          // Delete the old files and folder
+          for (const object of objects) {
+            {
+              // delete files
+              await this.s3Service.deleteImage(object.Key);
+            }
+            // delete folder
+            await this.s3Service.deleteFolder(oldFolder);
+          }
+        }
+      }
     }
 
     // check if user is trying to update the email
@@ -180,12 +211,29 @@ export class UsersService {
         await this.s3Service.deleteImage(key);
       }
 
+      // delete related goals before deleting the user
+      await this.prisma.goal.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
       // delete user
       const deleteUser = await this.prisma.user.delete({
         where: {
           id: id,
         },
       });
+
+      // delete all objects under the user's folders (avatars and goals)
+      const folders = ['avatars', 'goals'];
+      for (const folder of folders) {
+        const prefix = `${user.username}/${folder}/`;
+        const objects = await this.s3Service.listObjects(prefix);
+        for (const object of objects) {
+          await this.s3Service.deleteImage(object.Key);
+        }
+      }
 
       //check if user was deleted
       if (deleteUser) {
