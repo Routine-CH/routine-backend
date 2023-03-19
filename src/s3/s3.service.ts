@@ -42,9 +42,63 @@ export class S3Service {
   }
 
   async deleteImage(key: string): Promise<void> {
+    // list all object versions
+    const listObjectVersionsParams: AWS.S3.ListObjectVersionsRequest = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Prefix: key,
+    };
+
+    // get all versions of the object
+    const { Versions } = await this.s3
+      .listObjectVersions(listObjectVersionsParams)
+      .promise();
+
+    // if versions exist, delete all versions
+    if (Versions) {
+      for (const version of Versions) {
+        const deleteObjectParams: AWS.S3.DeleteObjectRequest = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key,
+          VersionId: version.VersionId,
+        };
+        await this.s3.deleteObject(deleteObjectParams).promise();
+      }
+    }
+
     const params: AWS.S3.DeleteObjectRequest = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
+    };
+
+    await this.s3.deleteObject(params).promise();
+  }
+
+  // list all objects in a given prefix
+  async listObjects(prefix: string): Promise<AWS.S3.Object[]> {
+    const params: AWS.S3.ListObjectsV2Request = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Prefix: prefix,
+    };
+
+    const { Contents } = await this.s3.listObjectsV2(params).promise();
+    return Contents || [];
+  }
+
+  async copyObject(sourceKey: string, destinationKey: string): Promise<void> {
+    const params: AWS.S3.CopyObjectRequest = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      CopySource: `${process.env.AWS_BUCKET_NAME}/${sourceKey}`,
+      Key: destinationKey,
+    };
+
+    await this.s3.copyObject(params).promise();
+  }
+
+  // delete folder
+  async deleteFolder(folderPath: string): Promise<void> {
+    const params: AWS.S3.DeleteObjectRequest = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: folderPath,
     };
 
     await this.s3.deleteObject(params).promise();
