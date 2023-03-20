@@ -15,14 +15,18 @@ export class AuthService {
   constructor(private prisma: PrismaService, private jwt: JwtService) {}
 
   // validateUser
-  async validateUser(payload: LoginUserDto): Promise<LoginUserDto> {
+  async validateUser(
+    payload: Partial<LoginUserDto>,
+  ): Promise<Partial<LoginUserDto>> {
     return await this.prisma.user.findUnique({
       where: { username: payload.username },
     });
   }
 
   // validateRefreshToken
-  async validateRefreshToken(payload: LoginUserDto): Promise<LoginUserDto> {
+  async validateRefreshToken(
+    payload: Partial<LoginUserDto>,
+  ): Promise<Partial<LoginUserDto>> {
     return await this.prisma.user.findUnique({
       where: { username: payload.username },
     });

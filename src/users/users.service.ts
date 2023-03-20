@@ -3,23 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserBadges } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/s3/s3.service';
 import { PrismaService } from './../prisma/prisma.service';
 import { UpdateUserDto } from './dto/user.dto';
 
-export type User = {
-  id: string;
-  email: string;
-  username: string;
-  avatarUrl: string;
-  badges: UserBadges[];
-};
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
+  // get user by id
   async getUserById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: id },
@@ -45,6 +38,7 @@ export class UsersService {
     return user;
   }
 
+  // get all users
   async getUsers() {
     return await this.prisma.user.findMany({
       select: {
@@ -55,6 +49,41 @@ export class UsersService {
         badges: true,
       },
     });
+  }
+
+  // get current authenticated user
+  async getAuthenticatedUser(id: string) {
+    try {
+      console.log(id);
+      const user = await this.prisma.user.findUnique({
+        where: { id: id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          avatarUrl: true,
+          badges: true,
+        },
+      });
+
+      // if no user is found, throw an error
+      if (!user) {
+        throw new BadRequestException(
+          'Something went wrong. Please try again.',
+        );
+      }
+
+      // generate a signed url for the image if exists
+      if (user.avatarUrl) {
+        const key = user.avatarUrl.split('.amazonaws.com/')[1];
+        user.avatarUrl = await this.s3Service.getSignedUrl(key);
+      }
+
+      return user;
+    } catch (error) {
+      console.log(error);
+      console.error(error);
+    }
   }
 
   async updateUser(
