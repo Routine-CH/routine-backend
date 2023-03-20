@@ -13,14 +13,23 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Request } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
+import { CustomRequest } from 'src/utils/types';
 import { UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  // get current authenticated user
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  async getAuthenticatedUser(@Req() req: CustomRequest) {
+    return await this.usersService.getAuthenticatedUser(req.user.id);
+  }
 
   // get user by id
   @Get(':id')
