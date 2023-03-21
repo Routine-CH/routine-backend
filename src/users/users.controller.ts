@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request } from 'express';
+import { Response } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { CustomRequest } from 'src/utils/types';
@@ -51,7 +51,7 @@ export class UsersController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     const buffer = file ? await fs.readFile(file.path) : undefined;
@@ -71,7 +71,7 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   async deleteUser(
     @Param('id') id: string,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return await this.usersService.deleteUser(id, req, res);

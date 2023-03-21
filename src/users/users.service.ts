@@ -4,7 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
 import { S3Service } from 'src/s3/s3.service';
+import { CustomRequest, UpdateData } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
 import { UpdateUserDto } from './dto/user.dto';
 
@@ -84,8 +86,8 @@ export class UsersService {
     buffer: Buffer | undefined,
     mimetype: string | undefined,
     originalname: string | undefined,
-    req: any,
-    res: any,
+    req: CustomRequest,
+    res: Response,
   ) {
     // get the user id from the JWT token
     const userId = req.user.id;
@@ -120,7 +122,7 @@ export class UsersService {
     }
 
     // updateData spread the updateUserDto and add the avatarUrl
-    const updateData: Record<string, any> = {
+    const updateData: UpdateData = {
       ...(updateUserDto.email !== undefined && { email: updateUserDto.email }),
       ...(updateUserDto.username !== undefined && {
         username: updateUserDto.username,
@@ -217,7 +219,7 @@ export class UsersService {
   }
 
   // delete user
-  async deleteUser(id: string, req: any, res: any) {
+  async deleteUser(id: string, req: CustomRequest, res: Response) {
     // get user from the database
     const user = await this.prisma.user.findUnique({ where: { id: id } });
 

@@ -19,3 +19,10 @@ export type UserPayload = {
   username: string;
   email: string;
 };
+
+export type UpdateData = {
+  email?: string;
+  username?: string;
+  password?: string;
+  avatarUrl?: string;
+};
