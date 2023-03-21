@@ -3,7 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CustomRequest } from 'src/utils/types';
 import { S3Service } from './../s3/s3.service';
 import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 
@@ -12,7 +14,7 @@ export class GoalsService {
   constructor(private prisma: PrismaService, private s3Service: S3Service) {}
 
   // get goals by selected week
-  async getGoalsBySelectedWeek(req: any, res: any) {
+  async getGoalsBySelectedWeek(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -43,7 +45,7 @@ export class GoalsService {
   }
 
   // get goals by specific date
-  async getGoalsBySelectedDay(req: any, res: any) {
+  async getGoalsBySelectedDay(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -108,7 +110,7 @@ export class GoalsService {
   }
 
   // get all goals
-  async getAllGoals(req: any, res: any) {
+  async getAllGoals(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -139,8 +141,8 @@ export class GoalsService {
     mimetype: string | undefined,
     originalname: string | undefined,
     createGoalDto: CreateGoalRequestDto,
-    req: any,
-    res: any,
+    req: CustomRequest,
+    res: Response,
     s3Service: S3Service,
   ) {
     const { title, description, importance, vision } = createGoalDto;
@@ -189,8 +191,8 @@ export class GoalsService {
     mimetype: string | undefined,
     originalname: string | undefined,
     updateGoalDto: UpdateGoalDto,
-    req: any,
-    res: any,
+    req: CustomRequest,
+    res: Response,
   ) {
     // find the goal to update
     const goalToEdit = await this.prisma.goal.findUnique({
@@ -251,7 +253,7 @@ export class GoalsService {
   }
 
   // delete goal
-  async deleteGoal(id: string, req: any, res: any) {
+  async deleteGoal(id: string, req: CustomRequest, res: Response) {
     // find the journal to delete
     const goalToDelete = await this.prisma.goal.findUnique({
       where: {

@@ -14,10 +14,11 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { S3Service } from 'src/s3/s3.service';
+import { CustomRequest } from 'src/utils/types';
 import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 import { GoalsService } from './goals.service';
 
@@ -31,28 +32,21 @@ export class GoalsController {
   // get all goals by selected week
   @Get('week')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedWeekGoals(@Req() req: Request, @Res() res: Response) {
+  getSelectedWeekGoals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.goalsService.getGoalsBySelectedWeek(req, res);
   }
 
   // get all goals by selected day
   @Get('day')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedDayGoals(@Req() req: Request, @Res() res: Response) {
+  getSelectedDayGoals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.goalsService.getGoalsBySelectedDay(req, res);
-  }
-
-  // get goal by id
-  @Get(':id')
-  @UseGuards(AuthGuard('jwt'))
-  getGoalById(@Param() params: { id: string }) {
-    return this.goalsService.getGoalById(params.id);
   }
 
   // get all goals
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  async getGoals(@Req() req: Request, @Res() res: Response) {
+  async getGoals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.goalsService.getAllGoals(req, res);
   }
 
@@ -63,7 +57,7 @@ export class GoalsController {
   async createGoal(
     @UploadedFile() file: Express.Multer.File,
     @Body() createGoalDto: CreateGoalRequestDto,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     const buffer = file ? await fs.readFile(file.path) : undefined;
@@ -78,6 +72,13 @@ export class GoalsController {
     );
   }
 
+  // get goal by id
+  @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
+  getGoalById(@Param() params: { id: string }) {
+    return this.goalsService.getGoalById(params.id);
+  }
+
   // edit goal
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
@@ -86,7 +87,7 @@ export class GoalsController {
     @Param('id') id: string,
     @Body() updateGoalDto: UpdateGoalDto,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     const buffer = file ? await fs.readFile(file.path) : undefined;
@@ -106,7 +107,7 @@ export class GoalsController {
   @UseGuards(AuthGuard('jwt'))
   async deleteGoal(
     @Param('id') id: string,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return await this.goalsService.deleteGoal(id, req, res);

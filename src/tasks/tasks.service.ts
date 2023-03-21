@@ -3,7 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CustomRequest } from 'src/utils/types';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 
 @Injectable()
@@ -11,7 +13,7 @@ export class TasksService {
   constructor(private prisma: PrismaService) {}
 
   // get tasks by selected week
-  async getTasksBySelectedWeek(req: any, res: any) {
+  async getTasksBySelectedWeek(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -42,7 +44,7 @@ export class TasksService {
   }
 
   // get tasks by specific date
-  async getTasksBySelectedDay(req: any, res: any) {
+  async getTasksBySelectedDay(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -99,7 +101,7 @@ export class TasksService {
   }
 
   // get all tasks
-  async getAllTasks(req: any, res: any) {
+  async getAllTasks(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -123,7 +125,11 @@ export class TasksService {
   }
 
   // create task with the JWT token provided
-  async createTask(createTaskDto: CreateTaskDto, req: any, res: any) {
+  async createTask(
+    createTaskDto: CreateTaskDto,
+    req: CustomRequest,
+    res: Response,
+  ) {
     const { title, description, plannedDate } = createTaskDto;
     const dateToComplete = new Date(plannedDate);
     // get the user id from the JWT token
@@ -150,8 +156,8 @@ export class TasksService {
   async updateTask(
     id: string,
     updateTaskDto: UpdateTaskDto,
-    req: any,
-    res: any,
+    req: CustomRequest,
+    res: Response,
   ) {
     const { title, description, plannedDate, completed } = updateTaskDto;
     const dateToComplete = new Date(plannedDate);
@@ -199,7 +205,7 @@ export class TasksService {
   }
 
   // delete task
-  async deleteTask(id: string, req: any, res: any) {
+  async deleteTask(id: string, req: CustomRequest, res: Response) {
     // find the task by id to delete
     const taskToDelete = await this.prisma.task.findUnique({
       where: {

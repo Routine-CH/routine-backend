@@ -11,6 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
+import { CustomRequest } from 'src/utils/types';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { TasksService } from './tasks.service';
 
@@ -21,14 +23,14 @@ export class TasksController {
   // get week's task
   @Get('week')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedWeekTasks(@Req() req: Request, @Res() res: Response) {
+  getSelectedWeekTasks(@Req() req: CustomRequest, @Res() res: Response) {
     return this.tasksService.getTasksBySelectedWeek(req, res);
   }
 
   // get all tasks by selected day
   @Get('day')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedDayTasks(@Req() req: Request, @Res() res: Response) {
+  getSelectedDayTasks(@Req() req: CustomRequest, @Res() res: Response) {
     return this.tasksService.getTasksBySelectedDay(req, res);
   }
 
@@ -42,7 +44,7 @@ export class TasksController {
   // get all tasks
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  async getTasks(@Req() req: Request, @Res() res: Response) {
+  async getTasks(@Req() req: CustomRequest, @Res() res: Response) {
     return this.tasksService.getAllTasks(req, res);
   }
 
@@ -51,7 +53,7 @@ export class TasksController {
   @UseGuards(AuthGuard('jwt'))
   async createTask(
     @Body() createTaskDto: CreateTaskDto,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return await this.tasksService.createTask(createTaskDto, req, res);
@@ -63,7 +65,7 @@ export class TasksController {
   async updateTask(
     @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return await this.tasksService.updateTask(id, updateTaskDto, req, res);
@@ -74,7 +76,7 @@ export class TasksController {
   @UseGuards(AuthGuard('jwt'))
   async deleteTask(
     @Param('id') id: string,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return await this.tasksService.deleteTask(id, req, res);

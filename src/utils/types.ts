@@ -7,6 +7,7 @@ export type User = {
   username: string;
   avatarUrl: string;
   badges: UserBadges[];
+  exp?: number;
 };
 
 export interface CustomRequest extends Request {
@@ -17,4 +18,11 @@ export type UserPayload = {
   id: string;
   username: string;
   email: string;
+};
+
+export type UpdateData = {
+  email?: string;
+  username?: string;
+  password?: string;
+  avatarUrl?: string;
 };

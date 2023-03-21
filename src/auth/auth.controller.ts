@@ -7,10 +7,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 import { Public } from 'src/utils/constants';
+import { CustomRequest } from 'src/utils/types';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
+import { JwtRefreshTokenAuthGuard } from './jwt-refresh-token.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -26,19 +28,21 @@ export class AuthController {
   // login route
   @Public()
   @Post('login')
-  login(@Body() dto: LoginUserDto, @Req() req, @Res() res) {
-    return this.authService.login(dto, req, res);
+  login(@Body() dto: LoginUserDto, @Res() res: Response) {
+    return this.authService.login(dto, res);
   }
 
-  @Post('refresh-token')
-  @UseGuards(AuthGuard('jwt-refresh-token'))
-  async refreshToken(@Req() req) {
-    return this.authService.refreshToken(req.user);
+  // Refresh token route
+  @Get('refresh-token')
+  @UseGuards(JwtRefreshTokenAuthGuard)
+  async refreshToken(@Req() req: CustomRequest, @Res() res: Response) {
+    const tokens = await this.authService.refreshToken(req.user);
+    res.send({ message: 'Refresh token is valid', ...tokens });
   }
 
   // logout route
   @Get('logout')
-  logout(@Req() req, @Res() res) {
-    return this.authService.logout(req, res);
+  logout(@Res() res: Response) {
+    return this.authService.logout(res);
   }
 }

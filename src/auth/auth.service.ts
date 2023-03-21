@@ -2,11 +2,14 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User as PrismaUser } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
+import { User, UserPayload } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
 
@@ -25,18 +28,27 @@ export class AuthService {
 
   // validateRefreshToken
   async validateRefreshToken(
-    payload: Partial<LoginUserDto>,
-  ): Promise<Partial<LoginUserDto>> {
+    payload: Partial<UserPayload>,
+  ): Promise<PrismaUser> {
     return await this.prisma.user.findUnique({
-      where: { username: payload.username },
+      where: { id: payload.id },
     });
   }
 
   // refreshToken logic
-  async refreshToken(user: LoginUserDto) {
-    const payload = { sub: user.username };
+  async refreshToken(user: User) {
+    // check if the token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (user.exp && user.exp <= now) {
+      throw new UnauthorizedException('Token expired');
+    }
+    // generate new tokens
+    const payload = { id: user.id, username: user.username };
     return {
-      access_token: this.jwt.sign(payload),
+      access_token: this.jwt.sign(payload, {
+        secret: jwtSecret,
+        expiresIn: '1d',
+      }),
       refresh_token: this.jwt.sign(payload, {
         expiresIn: '7d',
         secret: jwtRefreshTokenSecret,
@@ -76,7 +88,7 @@ export class AuthService {
   }
 
   // login logic
-  async login(dto: LoginUserDto, req: Request, res: Response) {
+  async login(dto: LoginUserDto, res: Response) {
     const { username, password } = dto;
 
     // check if user already exists
@@ -91,32 +103,32 @@ export class AuthService {
 
     // compare password
     const isMatch = await this.comparePassword(password, userExists.password);
-
     if (!isMatch) {
       throw new BadRequestException(
         `We couldn’t find an account matching the username and password you entered. Please check your username and password and try again.`,
       );
     }
 
+    // if user exists and password matches
     if (userExists && isMatch) {
       // sign jwt token and return to the user
-      const token = await this.signToken({
+      const tokens = await this.signToken({
         id: userExists.id,
         username: userExists.username,
       });
 
       // if no token found
-      if (!token) {
-        throw new ForbiddenException();
+      if (!tokens) {
+        throw new ForbiddenException('Sorry, you are not authorized');
       }
 
-      return res.send({ message: 'login succesful', token: token });
+      return res.send({ message: 'login succesful', ...tokens });
     }
     return null;
   }
 
   // logout logic
-  async logout(req: Request, res: Response) {
+  async logout(res: Response) {
     res.clearCookie('token');
     return res.send({ message: 'logout succesful' });
   }
@@ -133,8 +145,19 @@ export class AuthService {
   }
 
   // helper function to sign jwt token
-  async signToken(args: { id: string; username: string }) {
-    const payload = args;
-    return this.jwt.sign(payload, { secret: jwtSecret, expiresIn: '1d' });
+  async signToken(payload: { id: string; username: string }) {
+    const accessToken = this.jwt.sign(payload, {
+      secret: jwtSecret,
+      expiresIn: '1d',
+    });
+    const refreshToken = this.jwt.sign(payload, {
+      expiresIn: '7d',
+      secret: jwtRefreshTokenSecret,
+    });
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
 }

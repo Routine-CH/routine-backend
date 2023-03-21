@@ -11,6 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
+import { CustomRequest } from 'src/utils/types';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JournalsService } from './journals.service';
 
@@ -21,14 +23,14 @@ export class JournalsController {
   // Get all journals by selected week
   @Get('week')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedWeekJournals(@Req() req: Request, @Res() res: Response) {
+  getSelectedWeekJournals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.journalsService.getJournalsBySelectedWeek(req, res);
   }
 
   // Get all journals by selected day
   @Get('day')
   @UseGuards(AuthGuard('jwt'))
-  getSelectedDayJournals(@Req() req: Request, @Res() res: Response) {
+  getSelectedDayJournals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.journalsService.getJournalsBySelectedDay(req, res);
   }
 
@@ -42,7 +44,7 @@ export class JournalsController {
   // Get all journals
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  async getJournals(@Req() req: Request, @Res() res: Response) {
+  async getJournals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.journalsService.getJournals(req, res);
   }
 
@@ -51,7 +53,7 @@ export class JournalsController {
   @UseGuards(AuthGuard('jwt'))
   async createJournal(
     @Body() createJournalDto: CreateJournalDto,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return await this.journalsService.createJournal(createJournalDto, req, res);
@@ -63,7 +65,7 @@ export class JournalsController {
   async updateJournal(
     @Param('id') id: string,
     @Body() updateJournalDto: UpdateJournalDto,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     @Res() res: Response,
   ) {
     return this.journalsService.updateJournal(id, updateJournalDto, req, res);
@@ -74,7 +76,7 @@ export class JournalsController {
   @UseGuards(AuthGuard('jwt'))
   async deleteJournal(
     @Param('id') id: string,
-    @Req() req: Request,
+    @Req() req: CustomRequest,
     res: Response,
   ) {
     return this.journalsService.deleteJournal(id, req, res);

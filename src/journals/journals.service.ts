@@ -4,7 +4,9 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CustomRequest } from 'src/utils/types';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 
 @Injectable()
@@ -34,7 +36,7 @@ export class JournalsService {
   }
 
   // get all journals
-  async getJournals(req: any, res: any) {
+  async getJournals(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -57,7 +59,11 @@ export class JournalsService {
   }
 
   // create journal with the JWT token provided
-  async createJournal(createJournalDto: CreateJournalDto, req: any, res: any) {
+  async createJournal(
+    createJournalDto: CreateJournalDto,
+    req: CustomRequest,
+    res: Response,
+  ) {
     const { title, mood, moodDescription, activity, toImprove } =
       createJournalDto;
     // get the user id from the JWT token
@@ -85,8 +91,8 @@ export class JournalsService {
   async updateJournal(
     id: string,
     updateJournalDto: UpdateJournalDto,
-    req: any,
-    res: any,
+    req: CustomRequest,
+    res: Response,
   ) {
     // find the journal to edit
     const journalToEdit = await this.prisma.journal.findUnique({
@@ -125,7 +131,7 @@ export class JournalsService {
   }
 
   // get journals by specific date
-  async getJournalsBySelectedDay(req: any, res: any) {
+  async getJournalsBySelectedDay(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -161,7 +167,7 @@ export class JournalsService {
   }
 
   // get journals by specific week
-  async getJournalsBySelectedWeek(req: any, res: any) {
+  async getJournalsBySelectedWeek(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -191,7 +197,7 @@ export class JournalsService {
   }
 
   // delete journal
-  async deleteJournal(id: string, req: any, res: any) {
+  async deleteJournal(id: string, req: CustomRequest, res: Response) {
     // find the journal to delete
     const journalToDelete = await this.prisma.journal.findUnique({
       where: { id },
