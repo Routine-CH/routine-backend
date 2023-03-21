@@ -42,13 +42,6 @@ export class GoalsController {
     return this.goalsService.getGoalsBySelectedDay(req, res);
   }
 
-  // get goal by id
-  @Get(':id')
-  @UseGuards(AuthGuard('jwt'))
-  getGoalById(@Param() params: { id: string }) {
-    return this.goalsService.getGoalById(params.id);
-  }
-
   // get all goals
   @Get()
   @UseGuards(AuthGuard('jwt'))
@@ -76,6 +69,13 @@ export class GoalsController {
       res,
       this.s3Service,
     );
+  }
+
+  // get goal by id
+  @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
+  getGoalById(@Param() params: { id: string }) {
+    return this.goalsService.getGoalById(params.id);
   }
 
   // edit goal

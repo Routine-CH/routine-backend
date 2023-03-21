@@ -7,6 +7,7 @@ export type User = {
   username: string;
   avatarUrl: string;
   badges: UserBadges[];
+  exp?: number;
 };
 
 export interface CustomRequest extends Request {

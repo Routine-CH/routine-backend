@@ -31,16 +31,16 @@ export class UsersController {
     return await this.usersService.getAuthenticatedUser(req.user.id);
   }
 
-  // get user by id
-  @Get(':id')
-  getUserById(@Param('id') id: string) {
-    return this.usersService.getUserById(id);
-  }
-
   // get all users
   @Get()
   getUsers() {
     return this.usersService.getUsers();
+  }
+
+  // get user by id
+  @Get(':id')
+  getUserById(@Param('id') id: string) {
+    return this.usersService.getUserById(id);
   }
 
   // update user
