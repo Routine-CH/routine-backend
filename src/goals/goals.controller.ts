@@ -12,13 +12,13 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { S3Service } from 'src/s3/s3.service';
 import { CustomRequest } from 'src/utils/types';
+import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
 import { GoalsService } from './goals.service';
 
@@ -31,28 +31,28 @@ export class GoalsController {
 
   // get all goals by selected week
   @Get('week')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getSelectedWeekGoals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.goalsService.getGoalsBySelectedWeek(req, res);
   }
 
   // get all goals by selected day
   @Get('day')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getSelectedDayGoals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.goalsService.getGoalsBySelectedDay(req, res);
   }
 
   // get all goals
   @Get()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async getGoals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.goalsService.getAllGoals(req, res);
   }
 
   // post goal
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async createGoal(
     @UploadedFile() file: Express.Multer.File,
@@ -74,14 +74,14 @@ export class GoalsController {
 
   // get goal by id
   @Get(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getGoalById(@Param() params: { id: string }) {
     return this.goalsService.getGoalById(params.id);
   }
 
   // edit goal
   @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async updateGoal(
     @Param('id') id: string,
@@ -104,7 +104,7 @@ export class GoalsController {
 
   // delete goal
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async deleteGoal(
     @Param('id') id: string,
     @Req() req: CustomRequest,

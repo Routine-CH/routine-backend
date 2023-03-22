@@ -11,12 +11,12 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { CustomRequest } from 'src/utils/types';
+import { JwtAuthGuard } from './../auth/jwt.guard';
 import { UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
@@ -26,26 +26,28 @@ export class UsersController {
 
   // get current authenticated user
   @Get('me')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async getAuthenticatedUser(@Req() req: CustomRequest) {
     return await this.usersService.getAuthenticatedUser(req.user.id);
   }
 
   // get all users
   @Get()
+  @UseGuards(JwtAuthGuard)
   getUsers() {
     return this.usersService.getUsers();
   }
 
   // get user by id
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   getUserById(@Param('id') id: string) {
     return this.usersService.getUserById(id);
   }
 
   // update user
   @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('avatar', { storage: diskStorage({}) }))
   async updateUser(
     @Param('id') id: string,
@@ -68,7 +70,7 @@ export class UsersController {
 
   // delete user
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async deleteUser(
     @Param('id') id: string,
     @Req() req: CustomRequest,

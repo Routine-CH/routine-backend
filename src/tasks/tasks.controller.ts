@@ -10,9 +10,9 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { CustomRequest } from 'src/utils/types';
+import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { TasksService } from './tasks.service';
 
@@ -22,35 +22,35 @@ export class TasksController {
 
   // get week's task
   @Get('week')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getSelectedWeekTasks(@Req() req: CustomRequest, @Res() res: Response) {
     return this.tasksService.getTasksBySelectedWeek(req, res);
   }
 
   // get all tasks by selected day
   @Get('day')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getSelectedDayTasks(@Req() req: CustomRequest, @Res() res: Response) {
     return this.tasksService.getTasksBySelectedDay(req, res);
   }
 
   // get task by id
   @Get(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getTaskById(@Param() params: { id: string }) {
     return this.tasksService.getTaskById(params.id);
   }
 
   // get all tasks
   @Get()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async getTasks(@Req() req: CustomRequest, @Res() res: Response) {
     return this.tasksService.getAllTasks(req, res);
   }
 
   // post task
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async createTask(
     @Body() createTaskDto: CreateTaskDto,
     @Req() req: CustomRequest,
@@ -61,7 +61,7 @@ export class TasksController {
 
   // edit task
   @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async updateTask(
     @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
@@ -73,7 +73,7 @@ export class TasksController {
 
   // delete task
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async deleteTask(
     @Param('id') id: string,
     @Req() req: CustomRequest,
