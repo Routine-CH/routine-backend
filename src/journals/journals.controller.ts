@@ -10,9 +10,9 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { CustomRequest } from 'src/utils/types';
+import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 import { JournalsService } from './journals.service';
 
@@ -22,35 +22,35 @@ export class JournalsController {
 
   // Get all journals by selected week
   @Get('week')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getSelectedWeekJournals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.journalsService.getJournalsBySelectedWeek(req, res);
   }
 
   // Get all journals by selected day
   @Get('day')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getSelectedDayJournals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.journalsService.getJournalsBySelectedDay(req, res);
   }
 
   // Get journal by id
   @Get(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   getJournalById(@Param() params: { id: string }) {
     return this.journalsService.getJournalById(params.id);
   }
 
   // Get all journals
   @Get()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async getJournals(@Req() req: CustomRequest, @Res() res: Response) {
     return this.journalsService.getJournals(req, res);
   }
 
   // Post journal
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async createJournal(
     @Body() createJournalDto: CreateJournalDto,
     @Req() req: CustomRequest,
@@ -61,7 +61,7 @@ export class JournalsController {
 
   // Edit journal
   @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async updateJournal(
     @Param('id') id: string,
     @Body() updateJournalDto: UpdateJournalDto,
@@ -73,7 +73,7 @@ export class JournalsController {
 
   // Delete journal
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async deleteJournal(
     @Param('id') id: string,
     @Req() req: CustomRequest,
