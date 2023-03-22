@@ -241,6 +241,48 @@ export class UsersService {
         },
       });
 
+      // delete related tasks before deleting the user
+      await this.prisma.task.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete related journals before deleting the user
+      await this.prisma.journal.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete related user logins before deleting the user
+      await this.prisma.userLogins.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete related pomodoro timers before deleting the user
+      await this.prisma.pomodoroTimers.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete related meditation timers before deleting the user
+      await this.prisma.meditations.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete related user badges before deleting the user
+      await this.prisma.userBadges.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
       // delete user
       const deleteUser = await this.prisma.user.delete({
         where: {
