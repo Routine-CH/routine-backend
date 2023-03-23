@@ -4,7 +4,7 @@ import { PomodoroTimersController } from './pomodoro-timers.controller';
 import { PomodoroTimersService } from './pomodoro-timers.service';
 
 @Module({
-  providers: [PomodoroTimersService, PrismaService],
   controllers: [PomodoroTimersController],
+  providers: [PomodoroTimersService, PrismaService],
 })
 export class PomodoroTimersModule {}
