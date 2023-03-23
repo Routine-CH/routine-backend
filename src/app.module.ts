@@ -14,6 +14,9 @@ import { GoalsModule } from './goals/goals.module';
 import { JournalsController } from './journals/journals.controller';
 import { JournalsModule } from './journals/journals.module';
 import { TrackLoginMiddleware } from './middlewares/track-login.middleware';
+import { PomodoroTimersController } from './pomodoro-timers/pomodoro-timers.controller';
+import { PomodoroTimersModule } from './pomodoro-timers/pomodoro-timers.module';
+import { PomodoroTimersService } from './pomodoro-timers/pomodoro-timers.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { S3Service } from './s3/s3.service';
@@ -29,16 +32,19 @@ import { UsersModule } from './users/users.module';
     JournalsModule,
     GoalsModule,
     TasksModule,
+    PomodoroTimersModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
     }),
+    PomodoroTimersModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, PomodoroTimersController],
   providers: [
     AppService,
     PrismaService,
     { provide: 'APP_GUARD', useClass: JwtAuthGuard },
     S3Service,
+    PomodoroTimersService,
   ],
 })
 export class AppModule implements NestModule {
