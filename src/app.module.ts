@@ -13,6 +13,7 @@ import { GoalsController } from './goals/goals.controller';
 import { GoalsModule } from './goals/goals.module';
 import { JournalsController } from './journals/journals.controller';
 import { JournalsModule } from './journals/journals.module';
+import { MeditationsModule } from './meditations/meditations.module';
 import { TrackLoginMiddleware } from './middlewares/track-login.middleware';
 import { PomodoroTimersController } from './pomodoro-timers/pomodoro-timers.controller';
 import { PomodoroTimersModule } from './pomodoro-timers/pomodoro-timers.module';
@@ -33,10 +34,12 @@ import { UsersModule } from './users/users.module';
     GoalsModule,
     TasksModule,
     PomodoroTimersModule,
+    MeditationsModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
     }),
     PomodoroTimersModule,
+    MeditationsModule,
   ],
   controllers: [AppController, PomodoroTimersController],
   providers: [

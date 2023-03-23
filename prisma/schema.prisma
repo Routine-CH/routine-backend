@@ -118,10 +118,10 @@ model Meditations {
   id        String      @id @default(uuid())
   user    User @relation("UserMeditations", fields: [userId], references: [id])
   userId   String
-  startedAt DateTime @default(now())
-  stoppedAt DateTime @default(now())
+  totalDuration    Int    @default(0)
 
   @@index ([userId])
+   @@map("meditations")
 }
 
 model Badge {
