@@ -25,7 +25,7 @@ model User {
   badges               UserBadges[] @relation
 
   // relations
-  userLogins         UserLogins[]     @relation("UserLoginDates")
+  userLogins         UserStreaks[]    @relation("UserStreakCount")
   userJournals       Journal[]        @relation("UserJournals")
   userGoals          Goal[]           @relation("UserGoals")
   userTasks          Task[]           @relation("UserTasks")
@@ -35,14 +35,16 @@ model User {
   @@map("users")
 }
 
-model UserLogins {
-  id        String   @id @default(uuid())
-  user      User     @relation("UserLoginDates", fields: [userId], references: [id])
-  userId    String
-  loginDate DateTime @default(now())
+model UserStreaks {
+  id            String   @id @default(uuid())
+  user          User     @relation("UserStreakCount", fields: [userId], references: [id])
+  userId        String
+  lastLoginDate DateTime @default(now())
+  streakCount   Int      @default(0)
+  loginCount    Int      @default(0)
 
   @@index([userId])
-  @@map("user_logins")
+  @@map("user_streaks")
 }
 
 model Journal {

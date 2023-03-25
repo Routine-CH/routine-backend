@@ -13,6 +13,7 @@ import { CustomRequest } from 'src/utils/types';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
 import { JwtRefreshTokenAuthGuard } from './jwt-refresh-token.guard';
+import { JwtAuthGuard } from './jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -30,6 +31,13 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginUserDto, @Res() res: Response) {
     return this.authService.login(dto, res);
+  }
+
+  // auth check route
+  @Get('auth-check')
+  @UseGuards(JwtAuthGuard)
+  async authCheck() {
+    return { message: 'Authenticated and login tracked' };
   }
 
   // Refresh token route
