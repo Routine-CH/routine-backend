@@ -6,6 +6,14 @@ import { CreatePomodoroTimerDto } from './dto/pomodoro-timer.dto';
 export class PomodoroTimersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // get pomodoro-timer by user id
+  async getPomodoroTimerByUserId(userId: string) {
+    return await this.prisma.pomodoroTimers.findFirst({
+      where: { userId: userId },
+    });
+  }
+
+  // upsert pomodoro timer
   async upsertPomodoroTimer(
     createPomodoroTimerDto: CreatePomodoroTimerDto,
     userId: string,

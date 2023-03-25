@@ -6,6 +6,14 @@ import { CreateMeditationDto } from './dto/meditation.dto';
 export class MeditationsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // get meditation by user id
+  async getMeditationByUserId(userId: string) {
+    return await this.prisma.meditations.findFirst({
+      where: { userId: userId },
+    });
+  }
+
+  // upsert meditation
   async upsertMeditation(
     createMeditationDto: CreateMeditationDto,
     userId: string,
