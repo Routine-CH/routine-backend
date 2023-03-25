@@ -9,19 +9,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt.guard';
-import { GoalsController } from './goals/goals.controller';
 import { GoalsModule } from './goals/goals.module';
-import { JournalsController } from './journals/journals.controller';
 import { JournalsModule } from './journals/journals.module';
 import { MeditationsModule } from './meditations/meditations.module';
-import { TrackLoginMiddleware } from './middlewares/track-login.middleware';
+import { AuthTrackMiddleware } from './middlewares/auth-track.middleware';
 import { PomodoroTimersController } from './pomodoro-timers/pomodoro-timers.controller';
 import { PomodoroTimersModule } from './pomodoro-timers/pomodoro-timers.module';
 import { PomodoroTimersService } from './pomodoro-timers/pomodoro-timers.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { S3Service } from './s3/s3.service';
-import { TasksController } from './tasks/tasks.controller';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
 
@@ -54,27 +51,11 @@ export class AppModule implements NestModule {
   // implement middleware
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(TrackLoginMiddleware)
+      .apply(AuthTrackMiddleware)
       .exclude(
         { path: 'users/login', method: RequestMethod.POST },
         { path: 'users/register', method: RequestMethod.POST },
       )
-      .forRoutes(
-        GoalsController,
-        JournalsController,
-        TasksController,
-        {
-          path: 'users/me',
-          method: RequestMethod.GET,
-        },
-        {
-          path: 'users/:id',
-          method: RequestMethod.ALL,
-        },
-        {
-          path: 'users',
-          method: RequestMethod.GET,
-        },
-      );
+      .forRoutes({ path: 'auth/auth-check', method: RequestMethod.GET });
   }
 }

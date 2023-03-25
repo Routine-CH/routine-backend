@@ -256,7 +256,7 @@ export class UsersService {
       });
 
       // delete related user logins before deleting the user
-      await this.prisma.userLogins.deleteMany({
+      await this.prisma.userStreaks.deleteMany({
         where: {
           userId: id,
         },
