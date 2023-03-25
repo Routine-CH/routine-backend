@@ -10,9 +10,8 @@ export class PomodoroTimersService {
     createPomodoroTimerDto: CreatePomodoroTimerDto,
     userId: string,
   ) {
-    // calculate duration and Math.round() it
-    const { startTime, stopTime } = createPomodoroTimerDto;
-    const duration = Math.round(stopTime - startTime);
+    // get duration from body in seconds
+    const { durationInSeconds } = createPomodoroTimerDto;
 
     // check if a record for the user already exists
     const existingPomodoroRecord = await this.prisma.pomodoroTimers.findFirst({
@@ -27,7 +26,7 @@ export class PomodoroTimersService {
         where: { id: existingPomodoroRecord.id },
         data: {
           totalDuration: {
-            set: existingPomodoroRecord.totalDuration + duration,
+            set: existingPomodoroRecord.totalDuration + durationInSeconds,
           },
         },
       });
@@ -37,7 +36,7 @@ export class PomodoroTimersService {
       const newPomodoroRecord = await this.prisma.pomodoroTimers.create({
         data: {
           user: { connect: { id: userId } },
-          totalDuration: duration,
+          totalDuration: durationInSeconds,
         },
       });
       return newPomodoroRecord;

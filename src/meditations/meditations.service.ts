@@ -10,9 +10,8 @@ export class MeditationsService {
     createMeditationDto: CreateMeditationDto,
     userId: string,
   ) {
-    // calculate duration and Math.round() it
-    const { startTime, stopTime } = createMeditationDto;
-    const duration = Math.round(stopTime - startTime);
+    // get duration from body in seconds
+    const { durationInSeconds } = createMeditationDto;
 
     // check if a record for the user already exists
     const existingMeditationRecord = await this.prisma.meditations.findFirst({
@@ -25,7 +24,7 @@ export class MeditationsService {
         where: { id: existingMeditationRecord.id },
         data: {
           totalDuration: {
-            set: existingMeditationRecord.totalDuration + duration,
+            set: existingMeditationRecord.totalDuration + durationInSeconds,
           },
         },
       });
@@ -35,7 +34,7 @@ export class MeditationsService {
       const newMeditationRecord = await this.prisma.meditations.create({
         data: {
           user: { connect: { id: userId } },
-          totalDuration: duration,
+          totalDuration: durationInSeconds,
         },
       });
       return newMeditationRecord;
