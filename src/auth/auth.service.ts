@@ -65,7 +65,9 @@ export class AuthService {
       where: { email: email },
     });
     if (emailAlreadyExists) {
-      throw new BadRequestException('E-Mail already exists');
+      throw new BadRequestException(
+        'E-Mail already exists. Please try another E-Mail.',
+      );
     }
 
     // check if user already exists
@@ -73,7 +75,9 @@ export class AuthService {
       where: { username: username },
     });
     if (userAlreadyExists) {
-      throw new BadRequestException('Username is already taken');
+      throw new BadRequestException(
+        'Username already taken. Please try another username.',
+      );
     }
 
     // save hashed password from the current password
@@ -97,7 +101,7 @@ export class AuthService {
     });
     if (!userExists) {
       throw new BadRequestException(
-        `We couldn’t find an account matching the username you entered. Please check your username and try again.`,
+        'User doesn’t exist. Please check your username and try again.',
       );
     }
 

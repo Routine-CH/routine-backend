@@ -135,11 +135,26 @@ export class UsersController {
   })
   @ApiCreatedResponse({ description: 'User updated successfully' })
   @ApiBadRequestResponse({
-    description: `
-    Username not available: Username already taken
-    E-Mail not available: E-Mail already taken
-    User not updated: Oops! Something went wrong. Please try again.
-    `,
+    status: 400,
+    schema: {
+      anyOf: [
+        {
+          title: 'Username not available',
+          example: 'Username already taken. Please try another username',
+        },
+        {
+          title: 'E-Mail not available',
+          example: 'E-Mail already taken. Please try another E-Mail',
+        },
+        {
+          title: 'User not updated',
+          example: 'Oops! Something went wrong. Please try again.',
+        },
+      ],
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'JWT token is missing or invalid',
   })
   @Patch(':id')
   @UseGuards(JwtAuthGuard)

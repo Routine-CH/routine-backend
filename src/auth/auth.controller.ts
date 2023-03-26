@@ -11,6 +11,7 @@ import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiHeader,
+  ApiNotFoundResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -29,10 +30,21 @@ export class AuthController {
   // signup route
   @ApiCreatedResponse({ description: 'Signup was successful' })
   @ApiBadRequestResponse({
-    description: `
-  E-mail already exists: E-mail already exists.
-  Username already exists: Username is already taken.
-  `,
+    status: 400,
+    schema: {
+      anyOf: [
+        {
+          title: 'E-Mail already exists',
+          example: 'E-Mail already exists. Please try another E-Mail.',
+          description: 'E-Mail already exists. Please try another E-Mail.',
+        },
+        {
+          title: 'Username already taken',
+          example: 'Username already taken. Please try another username.',
+          description: 'Username already taken. Please try another username.',
+        },
+      ],
+    },
   })
   @Public()
   @Post('signup')
@@ -42,12 +54,15 @@ export class AuthController {
 
   // login route
   @ApiCreatedResponse({ description: 'Login successful', type: UserJwtPayload })
+  @ApiNotFoundResponse({
+    description:
+      'User doesn’t exist. Please check your username and try again.',
+  })
   @ApiBadRequestResponse({
-    description: `
-  User doesn't exist: We couldn’t find an account matching the username you entered. Please check your username and try again.
-  Password is incorrect: The password you entered is incorrect. Please try again.
-  No token found: Sorry, you are not authorized
-  `,
+    description: 'The password you entered is incorrect. Please try again.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'No token found, sorry, you are not authorized',
   })
   @Public()
   @Post('login')
