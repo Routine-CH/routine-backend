@@ -16,3 +16,11 @@ export class User {
   @ApiProperty()
   badges: [userId: string, badgeId: string];
 }
+
+export class UserJwtPayload {
+  @ApiProperty()
+  access_token: string;
+
+  @ApiProperty()
+  refresh_token: string;
+}

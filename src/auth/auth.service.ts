@@ -40,7 +40,7 @@ export class AuthService {
     // check if the token is expired
     const now = Math.floor(Date.now() / 1000);
     if (user.exp && user.exp <= now) {
-      throw new UnauthorizedException('Token expired');
+      throw new UnauthorizedException('Refresh token is invalid');
     }
     // generate new tokens
     const payload = { id: user.id, username: user.username };
@@ -65,7 +65,7 @@ export class AuthService {
       where: { email: email },
     });
     if (emailAlreadyExists) {
-      throw new BadRequestException('Email already exists');
+      throw new BadRequestException('E-Mail already exists');
     }
 
     // check if user already exists
@@ -84,7 +84,7 @@ export class AuthService {
       data: { username, email, password: hashedPassword },
     });
 
-    return { message: 'signup was successful' };
+    return { message: 'Signup was successful' };
   }
 
   // login logic
@@ -105,7 +105,7 @@ export class AuthService {
     const isMatch = await this.comparePassword(password, userExists.password);
     if (!isMatch) {
       throw new BadRequestException(
-        `We couldn’t find an account matching the username and password you entered. Please check your username and password and try again.`,
+        `The password you entered is incorrect. Please try again.`,
       );
     }
 
@@ -122,7 +122,7 @@ export class AuthService {
         throw new ForbiddenException('Sorry, you are not authorized');
       }
 
-      return res.send({ message: 'login succesful', ...tokens });
+      return res.send({ message: 'Login succesful', ...tokens });
     }
     return null;
   }
@@ -130,7 +130,7 @@ export class AuthService {
   // logout logic
   async logout(res: Response) {
     res.clearCookie('token');
-    return res.send({ message: 'logout succesful' });
+    return res.send({ message: 'Logout succesful' });
   }
 
   // hash password function

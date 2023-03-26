@@ -18,6 +18,7 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiHeader,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { promises as fs } from 'fs';
@@ -137,7 +138,7 @@ export class UsersController {
     description: `
     Username not available: Username already taken
     E-Mail not available: E-Mail already taken
-    User not updates: Oops! Something went wrong. Please try again.
+    User not updated: Oops! Something went wrong. Please try again.
     `,
   })
   @Patch(':id')
@@ -174,10 +175,10 @@ export class UsersController {
     type: User,
   })
   @ApiBadRequestResponse({
-    description: `
-    If user not deleted: Something went wrong. Please try again.
-    Not authorized: You are not authorized to delete this profile.
-    `,
+    description: 'Something went wrong. Please try again.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'You are not authorized to delete this profile.',
   })
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
