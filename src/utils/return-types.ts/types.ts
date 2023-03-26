@@ -101,3 +101,27 @@ export class Journal {
   @ApiProperty()
   createdAt: Date;
 }
+
+// Meditation API response
+export class Meditation {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  userId: string;
+
+  @ApiProperty()
+  totalDuration: number;
+}
+
+// Pomodoro-Timer API response
+export class PomodoroTimer {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  userId: string;
+
+  @ApiProperty()
+  totalDuration: number;
+}

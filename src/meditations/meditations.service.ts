@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMeditationDto } from './dto/meditation.dto';
 
@@ -8,9 +8,16 @@ export class MeditationsService {
 
   // get meditation by user id
   async getMeditationByUserId(userId: string) {
-    return await this.prisma.meditations.findFirst({
+    const meditation = await this.prisma.meditations.findFirst({
       where: { userId: userId },
     });
+
+    // if no meditation is found, throw an error
+    if (!meditation) {
+      throw new NotFoundException('No meditation record found for this user.');
+    } else {
+      return meditation;
+    }
   }
 
   // upsert meditation
