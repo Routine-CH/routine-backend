@@ -125,3 +125,33 @@ export class PomodoroTimer {
   @ApiProperty()
   totalDuration: number;
 }
+
+// Multiple tasks API response
+export class Tasks {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  title: string;
+
+  @ApiProperty()
+  plannedDate: Date;
+}
+
+// Task API response
+export class Task {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  title: string;
+
+  @ApiProperty()
+  description: string;
+
+  @ApiProperty()
+  plannedDate: Date;
+
+  @ApiProperty()
+  completed: boolean;
+}
