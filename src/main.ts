@@ -28,7 +28,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Routine')
     .setDescription('Routine API')
-    .setVersion('0.1')
+    .setVersion('1.0')
     .build();
 
   // Creating a swaggert module
