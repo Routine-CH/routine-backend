@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -180,7 +181,9 @@ export class GoalsService {
     if (goal) {
       return res.status(201).json({ message: 'Goal created successfully.' });
     } else {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new BadRequestException(
+        'Oops! Something went wrong. Please try again.',
+      );
     }
   }
 
@@ -241,12 +244,12 @@ export class GoalsService {
       } else {
         // if the goal was not updated, throw an error
         throw new BadRequestException(
-          'Something went wrong. Please try again.',
+          'Oops! Something went wrong. Please try again.',
         );
       }
     } else {
       // if the user is not the owner of the goal, throw an error
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         'You are not authorized to edit this goal.',
       );
     }
@@ -304,7 +307,7 @@ export class GoalsService {
       }
     } else {
       // if the user is not the owner of the goal, throw an error
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         'You are not authorized to delete this goal.',
       );
     }
