@@ -45,7 +45,7 @@ export class GoalsController {
     description: 'Authorization',
   })
   @ApiCreatedResponse({
-    description: 'Returns all goals for this week',
+    description: 'Returns all goals for the selected week',
     type: Goals,
   })
   @ApiNotFoundResponse({ description: 'Oops! No goals found for this week' })
@@ -99,7 +99,7 @@ export class GoalsController {
     description: 'Authorization',
   })
   @ApiCreatedResponse({
-    description: 'Goals created successfully',
+    description: 'Goal created successfully',
   })
   @ApiBadRequestResponse({
     description: 'Oops! Something went wrong. Please try again',
