@@ -214,7 +214,9 @@ export class UsersService {
     if (updateUser) {
       return res.status(200).json({ message: 'User updated successfully' });
     } else {
-      throw new BadRequestException('Oops! Something went wrong.');
+      throw new BadRequestException(
+        'Oops! Something went wrong. Please try again.',
+      );
     }
   }
 
@@ -287,6 +289,13 @@ export class UsersService {
       const deleteUser = await this.prisma.user.delete({
         where: {
           id: id,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          avatarUrl: true,
+          badges: true,
         },
       });
 

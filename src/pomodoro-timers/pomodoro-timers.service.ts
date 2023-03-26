@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePomodoroTimerDto } from './dto/pomodoro-timer.dto';
 
@@ -8,9 +8,18 @@ export class PomodoroTimersService {
 
   // get pomodoro-timer by user id
   async getPomodoroTimerByUserId(userId: string) {
-    return await this.prisma.pomodoroTimers.findFirst({
+    const pomodoroTimer = await this.prisma.pomodoroTimers.findFirst({
       where: { userId: userId },
     });
+
+    // if no pomodoro-timer is found, throw an error
+    if (!pomodoroTimer) {
+      throw new NotFoundException(
+        'No pomodoro-timer record found for this user.',
+      );
+    } else {
+      return pomodoroTimer;
+    }
   }
 
   // upsert pomodoro timer

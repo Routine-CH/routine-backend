@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -78,28 +79,6 @@ export class TasksService {
     return res.status(200).json(tasks);
   }
 
-  // get task by id
-  async getTaskById(id: string) {
-    // get the task by id
-    const task = await this.prisma.task.findUnique({
-      where: {
-        id: id,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        plannedDate: true,
-        completed: true,
-      },
-    });
-    // if no task is found, throw an error
-    if (!task) {
-      throw new BadRequestException('Something went wrong. Please try again.');
-    }
-    return task;
-  }
-
   // get all tasks
   async getAllTasks(req: CustomRequest, res: Response) {
     // get the user id from the JWT token
@@ -113,7 +92,6 @@ export class TasksService {
       select: {
         id: true,
         title: true,
-        completed: true,
         plannedDate: true,
       },
     });
@@ -150,6 +128,28 @@ export class TasksService {
     } else {
       throw new BadRequestException('Something went wrong. Please try again.');
     }
+  }
+
+  // get task by id
+  async getTaskById(id: string) {
+    // get the task by id
+    const task = await this.prisma.task.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        plannedDate: true,
+        completed: true,
+      },
+    });
+    // if no task is found, throw an error
+    if (!task) {
+      throw new BadRequestException('Something went wrong. Please try again.');
+    }
+    return task;
   }
 
   // update task
@@ -193,12 +193,12 @@ export class TasksService {
       } else {
         // if the task was not updated, throw an error
         throw new BadRequestException(
-          'Something went wrong. Please try again.',
+          'Oops! Something went wrong. Please try again.',
         );
       }
     } else {
       // if the user is not the owner of the task, throw an error
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         'You are not authorized to edit this task.',
       );
     }

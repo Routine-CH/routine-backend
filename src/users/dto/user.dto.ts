@@ -16,10 +16,6 @@ export class UpdateUserDto {
   username?: string;
 
   @IsString()
-  @IsOptional()
-  password?: string;
-
-  @IsString()
   @MinLength(8)
   @IsOptional()
   @ValidateIf((o) => o.oldPassword !== undefined && o.newPassword !== null)
