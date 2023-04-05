@@ -54,7 +54,7 @@ export class GamificationMiddleware implements NestMiddleware {
 
           // get count of records from table
           const count: number = await this.getRecordCount(userId, tableName);
-          // assign badge
+          // forward to assignBadge function
           earnedBadge = await this.assignBadge(userId, tableName, count);
         } else if (
           path.startsWith('/meditations') ||
@@ -66,7 +66,7 @@ export class GamificationMiddleware implements NestMiddleware {
             : 'pomodoro-timers';
 
           const totalDuration = await this.getTotalDuration(userId, tableName);
-          // assign badge
+          // forward to assign
           earnedBadge = await this.assignBadge(
             userId,
             tableName,
@@ -76,7 +76,8 @@ export class GamificationMiddleware implements NestMiddleware {
       }
 
       // Call next with the earnedBadge as an argument
-      next(earnedBadge);
+      res.locals.earnedBadge = earnedBadge;
+      next();
     } catch (error) {
       console.log(error);
     }
@@ -87,9 +88,43 @@ export class GamificationMiddleware implements NestMiddleware {
     userId: string,
     tableName: 'goals' | 'tasks' | 'journals',
   ): Promise<number> {
-    return await this.prisma[tableName].count({
-      where: { userId: userId },
-    });
+    try {
+      let count;
+
+      switch (tableName) {
+        case 'goals':
+          count = await this.prisma.goal.count({
+            where: { userId: userId },
+          });
+          break;
+        case 'tasks':
+          count = await this.prisma.task.count({
+            where: { userId: userId },
+          });
+          break;
+        case 'journals':
+          count = await this.prisma.journal.count({
+            where: { userId: userId },
+          });
+          break;
+        default:
+          console.error(`Error: Table '${tableName}' not found.`);
+          return 0;
+      }
+
+      if (typeof count === 'undefined') {
+        console.error(`Error: Count is undefined for table '${tableName}'.`);
+        return 0;
+      }
+
+      return count;
+    } catch (error) {
+      console.error(
+        `Error in getRecordCount for table '${tableName}': `,
+        error,
+      );
+      return 0;
+    }
   }
 
   // async getTotalDuration of table
@@ -97,17 +132,42 @@ export class GamificationMiddleware implements NestMiddleware {
     userId: string,
     tableName: 'meditations' | 'pomodoro-timers',
   ): Promise<number> {
-    const durations = await this.prisma[tableName].findMany({
-      where: { userId: userId },
-      select: { durationInSeconds: true },
-    });
+    try {
+      let durations;
 
-    // return total duration
-    return durations.reduce(
-      (accumulator: number, current: { durationInSeconds: number }) =>
-        accumulator + current.durationInSeconds,
-      0,
-    );
+      switch (tableName) {
+        case 'meditations':
+          durations = await this.prisma.meditations.findFirst({
+            where: { userId: userId },
+            select: { totalDuration: true },
+          });
+          break;
+        case 'pomodoro-timers':
+          durations = await this.prisma.pomodoroTimers.findFirst({
+            where: { userId: userId },
+            select: { totalDuration: true },
+          });
+          break;
+        default:
+          console.error(`Error: Table '${tableName}' not found.`);
+          return 0;
+      }
+
+      // return total duration
+      return (
+        durations.reduce(
+          (accumulator: number, current: { totalDuration: number }) =>
+            accumulator + current.totalDuration,
+          0,
+        ) ?? 0
+      );
+    } catch (error) {
+      console.error(
+        `Error in getTotalDuration for table '${tableName}': `,
+        error,
+      );
+      return 0;
+    }
   }
 
   // check loginstreaks
