@@ -110,6 +110,36 @@ export class GamificationMiddleware implements NestMiddleware {
     );
   }
 
+  // check loginstreaks
+  async checkLoginStreaks(userId: string) {
+    const userStreaks = await this.prisma.userStreaks.findFirst({
+      where: { userId: userId },
+    });
+
+    // assign badges based on the login streaks or login count
+    if (userStreaks.streakCount === 7) {
+      await this.assignBadge(userId, 'login-streaks', 7);
+    } else if (userStreaks.streakCount === 14) {
+      await this.assignBadge(userId, 'login-streaks', 14);
+    } else if (userStreaks.streakCount === 21) {
+      await this.assignBadge(userId, 'login-streaks', 21);
+    } else if (userStreaks.streakCount === 28) {
+      await this.assignBadge(userId, 'login-streaks', 28);
+    } else if (userStreaks.streakCount === 35) {
+      await this.assignBadge(userId, 'login-streaks', 35);
+    } else if (userStreaks.loginCount === 10) {
+      await this.assignBadge(userId, 'login-count', 10);
+    } else if (userStreaks.loginCount === 25) {
+      await this.assignBadge(userId, 'login-count', 25);
+    } else if (userStreaks.loginCount === 50) {
+      await this.assignBadge(userId, 'login-count', 50);
+    } else if (userStreaks.loginCount === 75) {
+      await this.assignBadge(userId, 'login-count', 75);
+    } else if (userStreaks.loginCount === 100) {
+      await this.assignBadge(userId, 'login-count', 100);
+    }
+  }
+
   // asign badge function
   async assignBadge(
     userId: string,
@@ -118,7 +148,9 @@ export class GamificationMiddleware implements NestMiddleware {
       | 'tasks'
       | 'journals'
       | 'meditations'
-      | 'pomodoro-timers',
+      | 'pomodoro-timers'
+      | 'login-streaks'
+      | 'login-count',
     countOrDuration: number,
   ): Promise<BadgeInfo | null> {
     let badgeTitle: string | null = null;
@@ -192,6 +224,34 @@ export class GamificationMiddleware implements NestMiddleware {
             tableName === 'meditations'
               ? 'Meditation Mogul'
               : 'Pomodoro Phenom';
+        }
+        break;
+      }
+      case 'login-streaks': {
+        if (countOrDuration === 7) {
+          badgeTitle = 'Streak Starter';
+        } else if (countOrDuration === 14) {
+          badgeTitle = 'Fortnight Fanatic';
+        } else if (countOrDuration === 21) {
+          badgeTitle = 'Three-week Thriver';
+        } else if (countOrDuration === 28) {
+          badgeTitle = 'Month-long Master';
+        } else if (countOrDuration === 35) {
+          badgeTitle = 'Streak Superstar';
+        }
+        break;
+      }
+      case 'login-count': {
+        if (countOrDuration === 10) {
+          badgeTitle = 'Login Novice';
+        } else if (countOrDuration === 25) {
+          badgeTitle = 'Login Enthusiast';
+        } else if (countOrDuration === 50) {
+          badgeTitle = 'Login Expert';
+        } else if (countOrDuration === 75) {
+          badgeTitle = 'Login Master';
+        } else if (countOrDuration === 100) {
+          badgeTitle = 'Login Legend';
         }
         break;
       }
