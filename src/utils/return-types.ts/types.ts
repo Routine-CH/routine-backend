@@ -155,3 +155,10 @@ export class Task {
   @ApiProperty()
   completed: boolean;
 }
+
+// Badge API response
+export interface BadgeInfo {
+  title: string;
+  description: string;
+  imageUrl: string;
+}
