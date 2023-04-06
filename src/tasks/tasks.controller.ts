@@ -7,10 +7,8 @@ import {
   Patch,
   Post,
   Req,
-  Res,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
@@ -23,22 +21,23 @@ export class TasksController {
   // get week's task
   @Get('week')
   @UseGuards(JwtAuthGuard)
-  getSelectedWeekTasks(@Req() req: CustomRequest, @Res() res: Response) {
-    return this.tasksService.getTasksBySelectedWeek(req, res);
+  getSelectedWeekTasks(@Req() req: CustomRequest) {
+    return this.tasksService.getTasksBySelectedWeek(req);
   }
 
   // get all tasks by selected day
   @Get('day')
   @UseGuards(JwtAuthGuard)
-  getSelectedDayTasks(@Req() req: CustomRequest, @Res() res: Response) {
-    return this.tasksService.getTasksBySelectedDay(req, res);
+  getSelectedDayTasks(@Req() req: CustomRequest) {
+    return this.tasksService.getTasksBySelectedDay(req);
   }
 
   // get all tasks
   @Get()
   @UseGuards(JwtAuthGuard)
-  async getTasks(@Req() req: CustomRequest, @Res() res: Response) {
-    return this.tasksService.getAllTasks(req, res);
+  async getTasks(@Req() req: CustomRequest) {
+    const tasksAndGoals = await this.tasksService.getAllTasks(req);
+    return tasksAndGoals;
   }
 
   // post task
@@ -47,9 +46,8 @@ export class TasksController {
   async createTask(
     @Body() createTaskDto: CreateTaskDto,
     @Req() req: CustomRequest,
-    @Res() res: Response,
   ) {
-    return await this.tasksService.createTask(createTaskDto, req, res);
+    return await this.tasksService.createTask(createTaskDto, req);
   }
 
   // get task by id
@@ -66,19 +64,14 @@ export class TasksController {
     @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
     @Req() req: CustomRequest,
-    @Res() res: Response,
   ) {
-    return await this.tasksService.updateTask(id, updateTaskDto, req, res);
+    return await this.tasksService.updateTask(id, updateTaskDto, req);
   }
 
   // delete task
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteTask(
-    @Param('id') id: string,
-    @Req() req: CustomRequest,
-    @Res() res: Response,
-  ) {
-    return await this.tasksService.deleteTask(id, req, res);
+  async deleteTask(@Param('id') id: string, @Req() req: CustomRequest) {
+    return await this.tasksService.deleteTask(id, req);
   }
 }

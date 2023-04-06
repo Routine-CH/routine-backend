@@ -4,7 +4,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomRequest } from 'src/utils/types';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
@@ -14,7 +13,7 @@ export class TasksService {
   constructor(private prisma: PrismaService) {}
 
   // get tasks by selected week
-  async getTasksBySelectedWeek(req: CustomRequest, res: Response) {
+  async getTasksBySelectedWeek(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -41,11 +40,11 @@ export class TasksService {
     if (!tasks || tasks.length === 0) {
       throw new NotFoundException(`Oops! No tasks found for this week.`);
     }
-    return res.status(200).json(tasks);
+    return tasks;
   }
 
   // get tasks by specific date
-  async getTasksBySelectedDay(req: CustomRequest, res: Response) {
+  async getTasksBySelectedDay(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -76,11 +75,11 @@ export class TasksService {
     if (!tasks || tasks.length === 0) {
       throw new NotFoundException(`Oops! No tasks found for this day.`);
     }
-    return res.status(200).json(tasks);
+    return tasks;
   }
 
   // get all tasks
-  async getAllTasks(req: CustomRequest, res: Response) {
+  async getAllTasks(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -99,15 +98,11 @@ export class TasksService {
     if (!tasks || tasks.length === 0) {
       throw new NotFoundException(`Oops! No tasks found.`);
     }
-    return res.status(200).json(tasks);
+    return tasks;
   }
 
   // create task with the JWT token provided
-  async createTask(
-    createTaskDto: CreateTaskDto,
-    req: CustomRequest,
-    res: Response,
-  ) {
+  async createTask(createTaskDto: CreateTaskDto, req: CustomRequest) {
     const { title, description, plannedDate } = createTaskDto;
     const dateToComplete = new Date(plannedDate);
     // get the user id from the JWT token
@@ -124,7 +119,7 @@ export class TasksService {
     });
     // check if the task was created
     if (task) {
-      return res.status(201).json({ message: 'Task created successfully.' });
+      return { message: 'Task created successfully.' };
     } else {
       throw new BadRequestException('Something went wrong. Please try again.');
     }
@@ -157,7 +152,6 @@ export class TasksService {
     id: string,
     updateTaskDto: UpdateTaskDto,
     req: CustomRequest,
-    res: Response,
   ) {
     const { title, description, plannedDate, completed } = updateTaskDto;
     const dateToComplete = new Date(plannedDate);
@@ -189,7 +183,7 @@ export class TasksService {
       });
       // check if the task was updated
       if (editTask) {
-        return res.status(200).json({ message: 'Task updated successfully.' });
+        return { message: 'Task updated successfully.' };
       } else {
         // if the task was not updated, throw an error
         throw new BadRequestException(
@@ -205,7 +199,7 @@ export class TasksService {
   }
 
   // delete task
-  async deleteTask(id: string, req: CustomRequest, res: Response) {
+  async deleteTask(id: string, req: CustomRequest) {
     // find the task by id to delete
     const taskToDelete = await this.prisma.task.findUnique({
       where: {
@@ -227,17 +221,10 @@ export class TasksService {
       });
       // check if the task was deleted
       if (deleteTask) {
-        if (res) {
-          return res.status(200).json({
-            message: `Task ${taskToDelete.title} was succesfully deleted.`,
-            deleteTask: deleteTask,
-          });
-        } else {
-          return {
-            message: `Task ${taskToDelete.title} was succesfully deleted.`,
-            deleteTask: deleteTask,
-          };
-        }
+        return {
+          message: `Task ${taskToDelete.title} was succesfully deleted.`,
+          deleteTask: deleteTask,
+        };
       } else {
         // if the task was not deleted, throw an error
         throw new BadRequestException(
