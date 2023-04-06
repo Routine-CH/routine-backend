@@ -30,8 +30,8 @@ export class AuthController {
   // login route
   @Public()
   @Post('login')
-  login(@Body() dto: LoginUserDto, @Res() res: Response) {
-    return this.authService.login(dto, res);
+  login(@Body() dto: LoginUserDto) {
+    return this.authService.login(dto);
   }
 
   // auth check route
@@ -44,9 +44,9 @@ export class AuthController {
   // Refresh token route
   @Get('refresh-token')
   @UseGuards(JwtRefreshTokenAuthGuard)
-  async refreshToken(@Req() req: CustomRequest, @Res() res: Response) {
+  async refreshToken(@Req() req: CustomRequest) {
     const tokens = await this.authService.refreshToken(req.user);
-    res.send({ message: 'Refresh token is valid', ...tokens });
+    return { message: 'Refresh token is valid', ...tokens };
   }
 
   // logout route
