@@ -6,13 +6,11 @@ import {
   Param,
   Patch,
   Req,
-  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { CustomRequest } from 'src/utils/types';
@@ -54,7 +52,6 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
     @Body() updateUserDto: UpdateUserDto,
     @Req() req: CustomRequest,
-    @Res() res: Response,
   ) {
     const buffer = file ? await fs.readFile(file.path) : undefined;
     return await this.usersService.updateUser(
@@ -64,18 +61,13 @@ export class UsersController {
       file?.mimetype,
       file?.originalname,
       req,
-      res,
     );
   }
 
   // delete user
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteUser(
-    @Param('id') id: string,
-    @Req() req: CustomRequest,
-    @Res() res: Response,
-  ) {
-    return await this.usersService.deleteUser(id, req, res);
+  async deleteUser(@Param('id') id: string, @Req() req: CustomRequest) {
+    return await this.usersService.deleteUser(id, req);
   }
 }

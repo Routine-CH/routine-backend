@@ -4,7 +4,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Response } from 'express';
 import { S3Service } from 'src/s3/s3.service';
 import { CustomRequest, UpdateData } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
@@ -87,7 +86,6 @@ export class UsersService {
     mimetype: string | undefined,
     originalname: string | undefined,
     req: CustomRequest,
-    res: Response,
   ) {
     // get the user id from the JWT token
     const userId = req.user.id;
@@ -212,7 +210,7 @@ export class UsersService {
 
     // check if the user was updated
     if (updateUser) {
-      return res.status(200).json({ message: 'User updated successfully' });
+      return { message: 'User updated successfully' };
     } else {
       throw new BadRequestException(
         'Oops! Something went wrong. Please try again.',
@@ -221,7 +219,7 @@ export class UsersService {
   }
 
   // delete user
-  async deleteUser(id: string, req: CustomRequest, res: Response) {
+  async deleteUser(id: string, req: CustomRequest) {
     // get user from the database
     const user = await this.prisma.user.findUnique({ where: { id: id } });
 
@@ -311,17 +309,10 @@ export class UsersService {
 
       //check if user was deleted
       if (deleteUser) {
-        if (res) {
-          return res.status(200).json({
-            message: 'User deleted successfully',
-            deletedUser: deleteUser,
-          });
-        } else {
-          return {
-            message: 'User deleted successfully',
-            deletedUser: deleteUser,
-          };
-        }
+        return {
+          message: 'User deleted successfully',
+          deletedUser: deleteUser,
+        };
       } else {
         // if user was not deleted, throw an error
         throw new BadRequestException(
