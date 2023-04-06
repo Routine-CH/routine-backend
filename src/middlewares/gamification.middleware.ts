@@ -3,9 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { NextFunction, Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BadgeInfo } from 'src/utils/return-types.ts/types';
-import { CustomRequest } from 'src/utils/types';
+import { CustomRequest, TableNames } from 'src/utils/types';
 
-// get userId from token function
 function getUserIdFromToken(
   token: string,
   jwtService: JwtService,
@@ -17,6 +16,36 @@ function getUserIdFromToken(
     console.error('Error verifying token: ', error);
     return null;
   }
+}
+
+// get badge according to the routher path
+async function getEarnedBadge(path: string, userId: string) {
+  if (
+    path.startsWith('/goals') ||
+    path.startsWith('/tasks') ||
+    path.startsWith('/journals')
+  ) {
+    const tableName = path.startsWith('/goals')
+      ? 'goals'
+      : path.startsWith('/tasks')
+      ? 'tasks'
+      : 'journals';
+
+    const count: number = await this.getRecordCount(userId, tableName);
+    return await this.assignBadge(userId, tableName, count);
+  } else if (
+    path.startsWith('/meditations') ||
+    path.startsWith('/pomodoro-timers')
+  ) {
+    const tableName = path.startsWith('/meditations')
+      ? 'meditations'
+      : 'pomodoro-timers';
+
+    const totalDuration = await this.getTotalDuration(userId, tableName);
+    return await this.assignBadge(userId, tableName, totalDuration);
+  }
+
+  return null;
 }
 
 @Injectable()
@@ -39,40 +68,8 @@ export class GamificationMiddleware implements NestMiddleware {
         // get path from request
         const path = req.path;
 
-        // path check
-        if (
-          path.startsWith('/goals') ||
-          path.startsWith('/tasks') ||
-          path.startsWith('/journals')
-        ) {
-          // get table name from path
-          const tableName = path.startsWith('/goals')
-            ? 'goals'
-            : path.startsWith('/tasks')
-            ? 'tasks'
-            : 'journals';
-
-          // get count of records from table
-          const count: number = await this.getRecordCount(userId, tableName);
-          // forward to assignBadge function
-          earnedBadge = await this.assignBadge(userId, tableName, count);
-        } else if (
-          path.startsWith('/meditations') ||
-          path.startsWith('/pomodoro-timers')
-        ) {
-          // get table name from path
-          const tableName = path.startsWith('/meditations')
-            ? 'meditations'
-            : 'pomodoro-timers';
-
-          const totalDuration = await this.getTotalDuration(userId, tableName);
-          // forward to assign
-          earnedBadge = await this.assignBadge(
-            userId,
-            tableName,
-            totalDuration,
-          );
-        }
+        // Call getEarnedBadge function to get the earned badge
+        earnedBadge = await getEarnedBadge.call(this, path, userId);
       }
 
       // Call next with the earnedBadge as an argument
@@ -177,40 +174,29 @@ export class GamificationMiddleware implements NestMiddleware {
     });
 
     // assign badges based on the login streaks or login count
-    if (userStreaks.streakCount === 7) {
-      await this.assignBadge(userId, 'login-streaks', 7);
-    } else if (userStreaks.streakCount === 14) {
-      await this.assignBadge(userId, 'login-streaks', 14);
-    } else if (userStreaks.streakCount === 21) {
-      await this.assignBadge(userId, 'login-streaks', 21);
-    } else if (userStreaks.streakCount === 28) {
-      await this.assignBadge(userId, 'login-streaks', 28);
-    } else if (userStreaks.streakCount === 35) {
-      await this.assignBadge(userId, 'login-streaks', 35);
-    } else if (userStreaks.loginCount === 10) {
-      await this.assignBadge(userId, 'login-count', 10);
-    } else if (userStreaks.loginCount === 25) {
-      await this.assignBadge(userId, 'login-count', 25);
-    } else if (userStreaks.loginCount === 50) {
-      await this.assignBadge(userId, 'login-count', 50);
-    } else if (userStreaks.loginCount === 75) {
-      await this.assignBadge(userId, 'login-count', 75);
-    } else if (userStreaks.loginCount === 100) {
-      await this.assignBadge(userId, 'login-count', 100);
+    if (userStreaks.streakCount <= 35) {
+      const loginStreaks = [7, 14, 21, 28, 35];
+      const foundStreak = loginStreaks.find(
+        (streak) => userStreaks.streakCount >= streak,
+      );
+      if (foundStreak) {
+        await this.assignBadge(userId, 'login-streaks', foundStreak);
+      }
+    } else if (userStreaks.loginCount <= 100) {
+      const loginCounts = [10, 25, 50, 75, 100];
+      const foundCount = loginCounts.find(
+        (count) => userStreaks.loginCount >= count,
+      );
+      if (foundCount) {
+        await this.assignBadge(userId, 'login-count', foundCount);
+      }
     }
   }
 
   // asign badge function
   async assignBadge(
     userId: string,
-    tableName:
-      | 'goals'
-      | 'tasks'
-      | 'journals'
-      | 'meditations'
-      | 'pomodoro-timers'
-      | 'login-streaks'
-      | 'login-count',
+    tableName: TableNames,
     countOrDuration: number,
   ): Promise<BadgeInfo | null> {
     let badgeTitle: string | null = null;
