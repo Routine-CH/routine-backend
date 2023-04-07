@@ -29,9 +29,16 @@ export type UpdateData = {
 
 export type TableNames =
   | 'goals'
-  | 'tasks'
+  | 'todos'
   | 'journals'
   | 'meditations'
   | 'pomodoro-timers'
   | 'login-streaks'
   | 'login-count';
+
+export interface Todo {
+  id: string;
+  title: string;
+  description: string;
+  plannedDate: Date;
+}

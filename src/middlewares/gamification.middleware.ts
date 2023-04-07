@@ -22,13 +22,13 @@ function getUserIdFromToken(
 async function getEarnedBadge(path: string, userId: string) {
   if (
     path.startsWith('/goals') ||
-    path.startsWith('/tasks') ||
+    path.startsWith('/todos') ||
     path.startsWith('/journals')
   ) {
     const tableName = path.startsWith('/goals')
       ? 'goals'
-      : path.startsWith('/tasks')
-      ? 'tasks'
+      : path.startsWith('/todos')
+      ? 'todos'
       : 'journals';
 
     const count: number = await this.getRecordCount(userId, tableName);
@@ -87,7 +87,7 @@ export class GamificationMiddleware implements NestMiddleware {
   // async getRecordCount of table
   async getRecordCount(
     userId: string,
-    tableName: 'goals' | 'tasks' | 'journals',
+    tableName: 'goals' | 'todos' | 'journals',
   ): Promise<number> {
     try {
       let count;
@@ -98,8 +98,8 @@ export class GamificationMiddleware implements NestMiddleware {
             where: { userId: userId },
           });
           break;
-        case 'tasks':
-          count = await this.prisma.task.count({
+        case 'todos':
+          count = await this.prisma.todo.count({
             where: { userId: userId },
           });
           break;

@@ -20,7 +20,7 @@ import { PomodoroTimersService } from './pomodoro-timers/pomodoro-timers.service
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { S3Service } from './s3/s3.service';
-import { TasksModule } from './tasks/tasks.module';
+import { TodosModule } from './todos/todos.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -30,7 +30,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     JournalsModule,
     GoalsModule,
-    TasksModule,
+    TodosModule,
     PomodoroTimersModule,
     MeditationsModule,
     JwtModule.register({
@@ -63,7 +63,7 @@ export class AppModule implements NestModule {
       .apply(GamificationMiddleware)
       .forRoutes(
         { path: 'goals', method: RequestMethod.ALL },
-        { path: 'tasks', method: RequestMethod.ALL },
+        { path: 'todos', method: RequestMethod.ALL },
         { path: 'journals', method: RequestMethod.ALL },
         { path: 'meditations', method: RequestMethod.ALL },
         { path: 'pomodoro-timers', method: RequestMethod.ALL },

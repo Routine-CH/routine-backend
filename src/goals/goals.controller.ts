@@ -49,15 +49,22 @@ export class GoalsController {
     return goalsAndBadge;
   }
 
-  // post goal
+  // create goal
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async createGoal(
     @UploadedFile() file: Express.Multer.File,
+    @Body('todosJSON') todosJSON: string[] | undefined,
     @Body() createGoalDto: CreateGoalRequestDto,
     @Req() req: CustomRequest,
   ) {
+    if (todosJSON && Array.isArray(todosJSON)) {
+      createGoalDto.todos = todosJSON.map((todo) => JSON.parse(todo));
+    } else {
+      createGoalDto.todos = [];
+    }
+
     const buffer = file ? await fs.readFile(file.path) : undefined;
     return await this.goalsService.createGoal(
       buffer,
@@ -87,6 +94,7 @@ export class GoalsController {
     @Req() req: CustomRequest,
   ) {
     const buffer = file ? await fs.readFile(file.path) : undefined;
+
     return await this.goalsService.updateGoal(
       id,
       buffer,

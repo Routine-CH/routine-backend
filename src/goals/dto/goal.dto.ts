@@ -1,4 +1,16 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+  Validate,
+} from 'class-validator';
+import { Todo } from 'src/utils/types';
+
+function hasMaxFiveTodos(todos: Todo[]) {
+  return todos.length <= 5;
+}
 
 export class CreateGoalRequestDto {
   @IsString()
@@ -11,15 +23,10 @@ export class CreateGoalRequestDto {
   @MinLength(5)
   public description: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public importance: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public vision: string;
+  @IsArray()
+  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @IsOptional()
+  public todos?: Todo[];
 }
 
 export class CreateGoalDto {
@@ -36,17 +43,31 @@ export class CreateGoalDto {
   @MinLength(5)
   public description: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public importance: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public vision: string;
-
   public completed?: string;
+
+  @IsArray()
+  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @IsOptional()
+  public todos?: Todo[];
 }
 
-export class UpdateGoalDto extends CreateGoalDto {}
+export class UpdateGoalDto {
+  @IsString()
+  @IsOptional()
+  public title?: string;
+
+  @IsString()
+  @IsOptional()
+  public imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  public description?: string;
+
+  public completed?: boolean;
+
+  @IsArray()
+  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @IsOptional()
+  public todos?: Todo[];
+}

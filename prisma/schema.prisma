@@ -28,7 +28,7 @@ model User {
   userLogins         UserStreaks[]    @relation("UserStreakCount")
   userJournals       Journal[]        @relation("UserJournals")
   userGoals          Goal[]           @relation("UserGoals")
-  userTasks          Task[]           @relation("UserTasks")
+  userTodo           Todo[]           @relation("UserTodos")
   userPomodoroTimers PomodoroTimers[] @relation("UserPomodoroTimers")
   userMeditations    Meditations[]    @relation("UserMeditations")
 
@@ -70,19 +70,18 @@ model Goal {
   title       String
   imageUrl    String?
   description String
-  importance  String
-  vision      String
   completed   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  todos       Todo[]
 
   @@index([userId])
   @@map("goals")
 }
 
-model Task {
+model Todo {
   id          String   @id @default(uuid())
-  user        User     @relation("UserTasks", fields: [userId], references: [id])
+  user        User     @relation("UserTodos", fields: [userId], references: [id])
   userId      String
   title       String
   description String
@@ -90,9 +89,12 @@ model Task {
   completed   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  goal        Goal?    @relation(fields: [goalId], references: [id])
+  goalId      String?
 
   @@index([userId])
-  @@map("tasks")
+  @@index([goalId])
+  @@map("todos")
 }
 
 model PomodoroTimers {

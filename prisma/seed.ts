@@ -24,8 +24,6 @@ async function main() {
       imageUrl: '',
       description:
         'Setting up planetscale and prisma to make them work together',
-      importance: 'It is important to have a database',
-      vision: 'I want to have a database',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -46,13 +44,13 @@ async function main() {
     },
   });
 
-  const task1 = await prisma.task.upsert({
+  const todo1 = await prisma.todo.upsert({
     where: { id: 'f270cd80-c128-4834-8e30-8a1577c0d7f3' },
     update: {},
     create: {
       userId: user1.id,
-      title: 'First Task',
-      description: 'First Task Description',
+      title: 'First Todo',
+      description: 'First Todo Description',
       plannedDate: new Date(),
       completed: false,
       createdAt: new Date(),
@@ -60,7 +58,7 @@ async function main() {
     },
   });
 
-  console.log({ user1, goal1, journal1, task1 });
+  console.log({ user1, goal1, journal1, todo1 });
 }
 
 main()

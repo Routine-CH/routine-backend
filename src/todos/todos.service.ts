@@ -6,22 +6,22 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomRequest } from 'src/utils/types';
-import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/todo.dto';
 
 @Injectable()
-export class TasksService {
+export class TodosService {
   constructor(private prisma: PrismaService) {}
 
-  // get tasks by selected week
-  async getTasksBySelectedWeek(req: CustomRequest) {
+  // get todos by selected week
+  async getTodosBySelectedWeek(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
     // parse the start and end dates of the selected week from the request body
     const { startOfWeek, endOfWeek } = req.body;
 
-    // get the tasks for the selected week
-    const tasks = await this.prisma.task.findMany({
+    // get the todos for the selected week
+    const todos = await this.prisma.todo.findMany({
       where: {
         userId: userId,
         plannedDate: {
@@ -36,15 +36,15 @@ export class TasksService {
       },
     });
 
-    // if no tasks are found, throw an error
-    if (!tasks || tasks.length === 0) {
-      throw new NotFoundException(`Oops! No tasks found for this week.`);
+    // if no todos are found, throw an error
+    if (!todos || todos.length === 0) {
+      throw new NotFoundException(`Oops! No todos found for this week.`);
     }
-    return tasks;
+    return todos;
   }
 
-  // get tasks by specific date
-  async getTasksBySelectedDay(req: CustomRequest) {
+  // get todos by specific date
+  async getTodosBySelectedDay(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -56,8 +56,8 @@ export class TasksService {
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // get the tasks for the selected date
-    const tasks = await this.prisma.task.findMany({
+    // get the todos for the selected date
+    const todos = await this.prisma.todo.findMany({
       where: {
         userId: userId,
         plannedDate: {
@@ -71,20 +71,20 @@ export class TasksService {
         plannedDate: true,
       },
     });
-    // if no tasks are found, throw an error
-    if (!tasks || tasks.length === 0) {
-      throw new NotFoundException(`Oops! No tasks found for this day.`);
+    // if no todos are found, throw an error
+    if (!todos || todos.length === 0) {
+      throw new NotFoundException(`Oops! No todos found for this day.`);
     }
-    return tasks;
+    return todos;
   }
 
-  // get all tasks
-  async getAllTasks(req: CustomRequest) {
+  // get all todos
+  async getAllTodos(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
-    // get all tasks
-    const tasks = await this.prisma.task.findMany({
+    // get all todos
+    const todos = await this.prisma.todo.findMany({
       where: {
         userId: userId,
       },
@@ -94,21 +94,21 @@ export class TasksService {
         plannedDate: true,
       },
     });
-    // if no tasks are found, throw an error
-    if (!tasks || tasks.length === 0) {
-      throw new NotFoundException(`Oops! No tasks found.`);
+    // if no todos are found, throw an error
+    if (!todos || todos.length === 0) {
+      throw new NotFoundException(`Oops! No todos found.`);
     }
-    return tasks;
+    return todos;
   }
 
-  // create task with the JWT token provided
-  async createTask(createTaskDto: CreateTaskDto, req: CustomRequest) {
-    const { title, description, plannedDate } = createTaskDto;
+  // create todo with the JWT token provided
+  async createTodo(createTodoDto: CreateTodoDto, req: CustomRequest) {
+    const { title, description, plannedDate } = createTodoDto;
     const dateToComplete = new Date(plannedDate);
     // get the user id from the JWT token
     const userId = req.user.id;
-    // create the task
-    const task = await this.prisma.task.create({
+    // create the todo
+    const todo = await this.prisma.todo.create({
       data: {
         title: title,
         description: description,
@@ -117,18 +117,18 @@ export class TasksService {
         user: { connect: { id: userId } },
       },
     });
-    // check if the task was created
-    if (task) {
-      return { message: 'Task created successfully.' };
+    // check if the todo was created
+    if (todo) {
+      return { message: 'Todo created successfully.' };
     } else {
       throw new BadRequestException('Something went wrong. Please try again.');
     }
   }
 
-  // get task by id
-  async getTaskById(id: string) {
-    // get the task by id
-    const task = await this.prisma.task.findUnique({
+  // get todo by id
+  async getTodoById(id: string) {
+    // get the todo by id
+    const todo = await this.prisma.todo.findUnique({
       where: {
         id: id,
       },
@@ -140,37 +140,37 @@ export class TasksService {
         completed: true,
       },
     });
-    // if no task is found, throw an error
-    if (!task) {
+    // if no todo is found, throw an error
+    if (!todo) {
       throw new BadRequestException('Something went wrong. Please try again.');
     }
-    return task;
+    return todo;
   }
 
-  // update task
-  async updateTask(
+  // update todo
+  async updateTodo(
     id: string,
-    updateTaskDto: UpdateTaskDto,
+    updateTodoDto: UpdateTodoDto,
     req: CustomRequest,
   ) {
-    const { title, description, plannedDate, completed } = updateTaskDto;
+    const { title, description, plannedDate, completed } = updateTodoDto;
     const dateToComplete = new Date(plannedDate);
-    // find the task by id to update
-    const taskToEdit = await this.prisma.task.findUnique({
+    // find the todo by id to update
+    const todoToEdit = await this.prisma.todo.findUnique({
       where: {
         id: id,
       },
     });
 
-    // implement check to see if the task exists
-    if (!taskToEdit) {
-      throw new NotFoundException('Oops! Task not found.');
+    // implement check to see if the todo exists
+    if (!todoToEdit) {
+      throw new NotFoundException('Oops! Todo not found.');
     }
 
-    // check if the user is the owner of the task
-    if (req.user.id === taskToEdit.userId) {
-      // update the task
-      const editTask = await this.prisma.task.update({
+    // check if the user is the owner of the todo
+    if (req.user.id === todoToEdit.userId) {
+      // update the todo
+      const editTodo = await this.prisma.todo.update({
         where: {
           id: id,
         },
@@ -181,27 +181,27 @@ export class TasksService {
           completed,
         },
       });
-      // check if the task was updated
-      if (editTask) {
-        return { message: 'Task updated successfully.' };
+      // check if the todo was updated
+      if (editTodo) {
+        return { message: 'Todo updated successfully.' };
       } else {
-        // if the task was not updated, throw an error
+        // if the todo was not updated, throw an error
         throw new BadRequestException(
           'Oops! Something went wrong. Please try again.',
         );
       }
     } else {
-      // if the user is not the owner of the task, throw an error
+      // if the user is not the owner of the todo, throw an error
       throw new UnauthorizedException(
-        'You are not authorized to edit this task.',
+        'You are not authorized to edit this todo.',
       );
     }
   }
 
-  // delete task
-  async deleteTask(id: string, req: CustomRequest) {
-    // find the task by id to delete
-    const taskToDelete = await this.prisma.task.findUnique({
+  // delete todo
+  async deleteTodo(id: string, req: CustomRequest) {
+    // find the todo by id to delete
+    const todoToDelete = await this.prisma.todo.findUnique({
       where: {
         id: id,
       },
@@ -211,30 +211,30 @@ export class TasksService {
         title: true,
       },
     });
-    // check if the user is the owner of the task
-    if (req.user.id === taskToDelete.userId) {
-      // delete the task
-      const deleteTask = await this.prisma.task.delete({
+    // check if the user is the owner of the todo
+    if (req.user.id === todoToDelete.userId) {
+      // delete the todo
+      const deleteTodo = await this.prisma.todo.delete({
         where: {
           id: id,
         },
       });
-      // check if the task was deleted
-      if (deleteTask) {
+      // check if the todo was deleted
+      if (deleteTodo) {
         return {
-          message: `Task ${taskToDelete.title} was succesfully deleted.`,
-          deleteTask: deleteTask,
+          message: `Todo ${todoToDelete.title} was succesfully deleted.`,
+          deleteTodo: deleteTodo,
         };
       } else {
-        // if the task was not deleted, throw an error
+        // if the todo was not deleted, throw an error
         throw new BadRequestException(
           'Something went wrong. Please try again.',
         );
       }
     } else {
-      // if the user is not the owner of the task, throw an error
+      // if the user is not the owner of the todo, throw an error
       throw new BadRequestException(
-        'You are not authorized to delete this task.',
+        'You are not authorized to delete this todo.',
       );
     }
   }

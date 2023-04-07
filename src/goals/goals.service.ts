@@ -114,7 +114,7 @@ export class GoalsService {
     req: CustomRequest,
     s3Service: S3Service,
   ) {
-    const { title, description, importance, vision } = createGoalDto;
+    const { title, description, todos } = createGoalDto;
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -139,10 +139,20 @@ export class GoalsService {
         title,
         imageUrl,
         description,
-        importance,
-        vision,
         completed: false,
         user: { connect: { id: userId } },
+        todos: todos
+          ? {
+              create: Array.isArray(todos)
+                ? todos.map((todo) => ({
+                    title: todo.title,
+                    description: todo.description,
+                    plannedDate: new Date(todo.plannedDate),
+                    user: { connect: { id: userId } },
+                  }))
+                : undefined,
+            }
+          : undefined,
       },
     });
     // check if goal was created
@@ -166,8 +176,7 @@ export class GoalsService {
         title: true,
         imageUrl: true,
         description: true,
-        importance: true,
-        vision: true,
+        todos: true,
         completed: true,
         createdAt: true,
       },
@@ -211,7 +220,6 @@ export class GoalsService {
       //convert completed field to boolean
       const updatedData = {
         ...updateGoalDto,
-        completed: updateGoalDto.completed === 'true' ? true : false,
       };
 
       // initialize imageUrl as existing  or undefined
@@ -228,12 +236,68 @@ export class GoalsService {
         imageUrl = await this.s3Service.uploadImage(buffer, mimetype, key);
       }
 
+      // updateGoalDto contains todos
+      const { todos } = updateGoalDto;
+
+      // get existing todos for the goal
+      const existingTodos = await this.prisma.todo.findMany({
+        where: { goalId: id },
+      });
+
+      // find new todos to add
+      const todosToAdd = todos.filter((t) => !t.id);
+
+      // add new todos
+      await this.prisma.todo.createMany({
+        data: todosToAdd.map((todo) => ({
+          title: todo.title,
+          description: todo.description,
+          plannedDate: new Date(todo.plannedDate),
+          userId: req.user.id,
+          goalId: id,
+        })),
+      });
+
+      // find todos to add and to remove
+      const todosToUpdate = todos.filter(
+        (t) => !existingTodos.some((e) => e.id === t.id),
+      );
+      const todoIdsToRemove = existingTodos
+        .filter((e) => !todos.some((t) => t.id === e.id))
+        .map((e) => e.id);
+
+      // Remove todos
+      await this.prisma.todo.deleteMany({
+        where: { id: { in: todoIdsToRemove } },
+      });
+
       // update the goal
       const editGoal = await this.prisma.goal.update({
         where: {
           id: id,
         },
-        data: { ...updatedData, imageUrl },
+        data: {
+          ...updatedData,
+          imageUrl,
+          todos: todosToUpdate.length
+            ? {
+                upsert: todosToUpdate.map((todo) => ({
+                  where: { id: todo.id },
+                  create: {
+                    title: todo.title,
+                    description: todo.description,
+                    plannedDate: new Date(todo.plannedDate),
+                    user: { connect: { id: req.user.id } },
+                  },
+                  update: {
+                    title: todo.title,
+                    description: todo.description,
+                    plannedDate: new Date(todo.plannedDate),
+                  },
+                })),
+              }
+            : undefined,
+        },
       });
       // check if goal was updated
       if (editGoal) {
