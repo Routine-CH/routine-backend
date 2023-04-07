@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { NextFunction, Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BadgeInfo } from 'src/utils/return-types.ts/types';
-import { CustomRequest, TableNames } from 'src/utils/types';
+import { CustomRequest } from 'src/utils/types';
 
 function getUserIdFromToken(
   token: string,
@@ -32,7 +32,9 @@ async function getEarnedBadge(path: string, userId: string) {
       : 'journals';
 
     const count: number = await this.getRecordCount(userId, tableName);
-    return await this.assignBadge(userId, tableName, count);
+    if ([10, 25, 50, 75, 100].includes(count)) {
+      return await this.assignBadge(userId, tableName, count);
+    }
   } else if (
     path.startsWith('/meditations') ||
     path.startsWith('/pomodoro-timers')
@@ -42,7 +44,9 @@ async function getEarnedBadge(path: string, userId: string) {
       : 'pomodoro-timers';
 
     const totalDuration = await this.getTotalDuration(userId, tableName);
-    return await this.assignBadge(userId, tableName, totalDuration);
+    if ([1800, 3600, 7200, 10800, 14400].includes(totalDuration)) {
+      return await this.assignBadge(userId, tableName, totalDuration);
+    }
   }
 
   return null;
@@ -180,7 +184,7 @@ export class GamificationMiddleware implements NestMiddleware {
         (streak) => userStreaks.streakCount >= streak,
       );
       if (foundStreak) {
-        await this.assignBadge(userId, 'login-streaks', foundStreak);
+        await this.assignBadge(userId, foundStreak);
       }
     } else if (userStreaks.loginCount <= 100) {
       const loginCounts = [10, 25, 50, 75, 100];
@@ -188,7 +192,7 @@ export class GamificationMiddleware implements NestMiddleware {
         (count) => userStreaks.loginCount >= count,
       );
       if (foundCount) {
-        await this.assignBadge(userId, 'login-count', foundCount);
+        await this.assignBadge(userId, foundCount);
       }
     }
   }
@@ -196,153 +200,52 @@ export class GamificationMiddleware implements NestMiddleware {
   // asign badge function
   async assignBadge(
     userId: string,
-    tableName: TableNames,
     countOrDuration: number,
   ): Promise<BadgeInfo | null> {
-    let badgeTitle: string | null = null;
+    // get all badges that meet the count or the duration
+    const eligibleBadges = await this.prisma.badge.findMany({
+      where: {
+        requiredCountOrDuration: countOrDuration,
+      },
+    });
 
-    switch (tableName) {
-      case 'goals':
-      case 'tasks':
-      case 'journals': {
-        if (countOrDuration === 10) {
-          badgeTitle =
-            tableName === 'goals'
-              ? 'Goal Getter'
-              : tableName === 'tasks'
-              ? 'Task Tackler'
-              : 'Journaling Journeyman';
-        } else if (countOrDuration === 25) {
-          badgeTitle =
-            tableName === 'goals'
-              ? 'Goal Guru'
-              : tableName === 'tasks'
-              ? 'Task Titan'
-              : 'Journaling Jedi';
-        } else if (countOrDuration === 50) {
-          badgeTitle =
-            tableName === 'goals'
-              ? 'Goal Gladiator'
-              : tableName === 'tasks'
-              ? 'Task Terminator'
-              : 'Journaling Genius';
-        } else if (countOrDuration === 75) {
-          badgeTitle =
-            tableName === 'goals'
-              ? 'Goal Grandmaster'
-              : tableName === 'tasks'
-              ? 'Task Trailblazer'
-              : 'Journaling Juggernaut';
-        } else if (countOrDuration === 100) {
-          badgeTitle =
-            tableName === 'goals'
-              ? 'Goal God'
-              : tableName === 'tasks'
-              ? 'Task Tornado'
-              : 'Journaling Jumbo';
-        }
-        break;
-      }
-      case 'meditations':
-      case 'pomodoro-timers': {
-        if (countOrDuration === 1800) {
-          badgeTitle =
-            tableName === 'meditations'
-              ? 'Meditation Maverick'
-              : 'Pomodoro Prodigy';
-        } else if (countOrDuration === 3600) {
-          badgeTitle =
-            tableName === 'meditations'
-              ? 'Meditation Mastermind'
-              : 'Pomodoro Pro';
-        } else if (countOrDuration === 7200) {
-          badgeTitle =
-            tableName === 'meditations'
-              ? 'Meditation Mentor'
-              : 'Pomodoro Pioneer';
-        } else if (countOrDuration === 10800) {
-          badgeTitle =
-            tableName === 'meditations'
-              ? 'Meditation Maestro'
-              : 'Pomodoro Paragon';
-        } else if (countOrDuration === 14400) {
-          badgeTitle =
-            tableName === 'meditations'
-              ? 'Meditation Mogul'
-              : 'Pomodoro Phenom';
-        }
-        break;
-      }
-      case 'login-streaks': {
-        if (countOrDuration === 7) {
-          badgeTitle = 'Streak Starter';
-        } else if (countOrDuration === 14) {
-          badgeTitle = 'Fortnight Fanatic';
-        } else if (countOrDuration === 21) {
-          badgeTitle = 'Three-week Thriver';
-        } else if (countOrDuration === 28) {
-          badgeTitle = 'Month-long Master';
-        } else if (countOrDuration === 35) {
-          badgeTitle = 'Streak Superstar';
-        }
-        break;
-      }
-      case 'login-count': {
-        if (countOrDuration === 10) {
-          badgeTitle = 'Login Novice';
-        } else if (countOrDuration === 25) {
-          badgeTitle = 'Login Enthusiast';
-        } else if (countOrDuration === 50) {
-          badgeTitle = 'Login Expert';
-        } else if (countOrDuration === 75) {
-          badgeTitle = 'Login Master';
-        } else if (countOrDuration === 100) {
-          badgeTitle = 'Login Legend';
-        }
-        break;
-      }
-      default:
-        break;
+    // if no eligibla badges are found
+    if (eligibleBadges.length === 0) {
+      return null;
     }
 
-    // check if badge is already assigned
-    if (badgeTitle) {
-      // find badge according to the badgeTitle
-      const badge = await this.prisma.badge.findFirst({
-        where: { title: badgeTitle },
+    // find a badge that the user has not earned yet
+    let unassignedBadge = null;
+    for (const badge of eligibleBadges) {
+      const userBadge = await this.prisma.userBadges.findFirst({
+        where: {
+          userId: userId,
+          badgeId: badge.id,
+        },
+      });
+      if (!userBadge) {
+        unassignedBadge = badge;
+        break;
+      }
+    }
+
+    // assign badge to user if an unassigned badge is found
+    if (unassignedBadge) {
+      await this.prisma.userBadges.create({
+        data: {
+          userId: userId,
+          badgeId: unassignedBadge.id,
+        },
       });
 
-      // if badge is found
-      if (badge) {
-        // check all the user badges
-        const userBadges = await this.prisma.userBadges.findUnique({
-          where: {
-            userId_badgeId: {
-              userId: userId,
-              badgeId: badge.id,
-            },
-          },
-        });
-
-        // if user badge is not found, assign the badge
-        if (!userBadges) {
-          await this.prisma.userBadges.create({
-            data: {
-              user: { connect: { id: userId } },
-              badge: { connect: { id: badge.id } },
-            },
-          });
-
-          return {
-            title: badge.title,
-            description: badge.description,
-            imageUrl: badge.imageUrl,
-          };
-        }
-
-        // if user badge is found, return null
-        return null;
-      }
+      return {
+        title: unassignedBadge.title,
+        description: unassignedBadge.description,
+        imageUrl: unassignedBadge.image,
+      };
     }
+
+    // if user badge is found, return null
+    return null;
   }
 }
