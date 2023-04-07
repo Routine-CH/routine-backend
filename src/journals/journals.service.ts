@@ -4,7 +4,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomRequest } from 'src/utils/types';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
@@ -14,7 +13,7 @@ export class JournalsService {
   constructor(private prisma: PrismaService) {}
 
   // get journals by specific week
-  async getJournalsBySelectedWeek(req: CustomRequest, res: Response) {
+  async getJournalsBySelectedWeek(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -40,11 +39,11 @@ export class JournalsService {
     if (!journals || journals.length === 0) {
       throw new NotFoundException(`Oops! No journals found for this week.`);
     }
-    return res.status(200).json(journals);
+    return journals;
   }
 
   // get journals by specific date
-  async getJournalsBySelectedDay(req: CustomRequest, res: Response) {
+  async getJournalsBySelectedDay(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -76,11 +75,11 @@ export class JournalsService {
     if (!journals || journals.length === 0) {
       throw new NotFoundException(`Oops! No journals found for this day.`);
     }
-    return res.status(200).json(journals);
+    return journals;
   }
 
   // get all journals
-  async getJournals(req: CustomRequest, res: Response) {
+  async getAllJournals(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -99,15 +98,11 @@ export class JournalsService {
       throw new NotFoundException(`Oops! You don't have any journals yet.`);
     }
 
-    return res.status(200).json(allUserJounals);
+    return allUserJounals;
   }
 
   // create journal with the JWT token provided
-  async createJournal(
-    createJournalDto: CreateJournalDto,
-    req: CustomRequest,
-    res: Response,
-  ) {
+  async createJournal(createJournalDto: CreateJournalDto, req: CustomRequest) {
     const { title, mood, moodDescription, activity, toImprove } =
       createJournalDto;
     // get the user id from the JWT token
@@ -125,7 +120,7 @@ export class JournalsService {
     });
     // check if the journal was created
     if (journal) {
-      return res.status(201).json({ message: 'Journal created successfully.' });
+      return { message: 'Journal created successfully.' };
     } else {
       throw new BadRequestException(
         'Oops! Something went wrong, please try again.',
@@ -160,7 +155,6 @@ export class JournalsService {
     id: string,
     updateJournalDto: UpdateJournalDto,
     req: CustomRequest,
-    res: Response,
   ) {
     // find the journal to edit
     const journalToEdit = await this.prisma.journal.findUnique({
@@ -181,9 +175,7 @@ export class JournalsService {
       });
       // check if the journal was updated
       if (editJournal) {
-        return res
-          .status(200)
-          .json({ message: 'Journal updated successfully.' });
+        return { message: 'Journal updated successfully.' };
       } else {
         // if the journal was not updated, throw an error
         throw new BadRequestException(
@@ -199,7 +191,7 @@ export class JournalsService {
   }
 
   // delete journal
-  async deleteJournal(id: string, req: CustomRequest, res: Response) {
+  async deleteJournal(id: string, req: CustomRequest) {
     // find the journal to delete
     const journalToDelete = await this.prisma.journal.findUnique({
       where: { id },
@@ -217,17 +209,10 @@ export class JournalsService {
       });
       // check if the journal was deleted
       if (deleteJournal) {
-        if (res) {
-          return res.status(200).json({
-            message: `Journal ${journalToDelete.title} was succesfully deleted`,
-            deleteJournal: deleteJournal,
-          });
-        } else {
-          return {
-            message: `Journal ${journalToDelete.title} was succesfully deleted`,
-            deleteJournal: deleteJournal,
-          };
-        }
+        return {
+          message: `Journal ${journalToDelete.title} was succesfully deleted`,
+          deleteJournal: deleteJournal,
+        };
       } else {
         // if the journal was not deleted, throw an error
         throw new BadRequestException(

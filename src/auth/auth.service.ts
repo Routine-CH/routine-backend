@@ -92,7 +92,7 @@ export class AuthService {
   }
 
   // login logic
-  async login(dto: LoginUserDto, res: Response) {
+  async login(dto: LoginUserDto) {
     const { username, password } = dto;
 
     // check if user already exists
@@ -126,7 +126,7 @@ export class AuthService {
         throw new ForbiddenException('Sorry, you are not authorized');
       }
 
-      return res.send({ message: 'Login succesful', ...tokens });
+      return { message: 'Login succesful', ...tokens };
     }
     return null;
   }

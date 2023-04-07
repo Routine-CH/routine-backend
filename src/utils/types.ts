@@ -26,3 +26,12 @@ export type UpdateData = {
   password?: string;
   avatarUrl?: string;
 };
+
+export type TableNames =
+  | 'goals'
+  | 'tasks'
+  | 'journals'
+  | 'meditations'
+  | 'pomodoro-timers'
+  | 'login-streaks'
+  | 'login-count';
