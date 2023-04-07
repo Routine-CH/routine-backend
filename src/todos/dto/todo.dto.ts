@@ -2,6 +2,7 @@ import {
   IsBoolean,
   IsDateString,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
@@ -26,3 +27,25 @@ export class CreateTodoDto {
 }
 
 export class UpdateTodoDto extends CreateTodoDto {}
+
+export class TodoDto {
+  @IsString()
+  @IsNotEmpty()
+  public id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  public title: string;
+
+  @IsString()
+  @IsNotEmpty()
+  public description: string;
+
+  @IsString()
+  @IsNotEmpty()
+  public plannedDate: Date;
+
+  @IsOptional()
+  @IsBoolean()
+  completed?: boolean;
+}

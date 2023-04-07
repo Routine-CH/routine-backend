@@ -1,4 +1,15 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { CreateTodoDto, TodoDto } from 'src/todos/dto/todo.dto';
 
 export class CreateGoalRequestDto {
   @IsString()
@@ -10,6 +21,12 @@ export class CreateGoalRequestDto {
   @IsNotEmpty()
   @MinLength(5)
   public description: string;
+
+  @IsArray()
+  @MaxLength(5)
+  @ValidateNested({ each: true })
+  @Type(() => TodoDto)
+  public todos?: TodoDto[];
 }
 
 export class CreateGoalDto {
@@ -26,17 +43,34 @@ export class CreateGoalDto {
   @MinLength(5)
   public description: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public importance: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public vision: string;
-
   public completed?: string;
+
+  @IsArray()
+  @ArrayMinSize(0)
+  @MaxLength(5)
+  @IsOptional()
+  public todos?: CreateTodoDto[];
 }
 
-export class UpdateGoalDto extends CreateGoalDto {}
+export class UpdateGoalDto {
+  @IsString()
+  @IsOptional()
+  public title?: string;
+
+  @IsString()
+  @IsOptional()
+  public imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  public description?: string;
+
+  public completed?: boolean;
+
+  @IsArray()
+  @ArrayMinSize(0)
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => TodoDto)
+  public todos?: TodoDto[];
+}

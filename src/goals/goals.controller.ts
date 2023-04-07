@@ -49,7 +49,7 @@ export class GoalsController {
     return goalsAndBadge;
   }
 
-  // post goal
+  // create goal
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
@@ -87,6 +87,7 @@ export class GoalsController {
     @Req() req: CustomRequest,
   ) {
     const buffer = file ? await fs.readFile(file.path) : undefined;
+
     return await this.goalsService.updateGoal(
       id,
       buffer,
