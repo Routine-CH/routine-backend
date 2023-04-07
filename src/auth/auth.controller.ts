@@ -7,7 +7,6 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiCreatedResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Public } from 'src/utils/constants';
 import { CustomRequest } from 'src/utils/types';
@@ -50,7 +49,6 @@ export class AuthController {
   }
 
   // logout route
-  @ApiCreatedResponse({ description: 'Logout successful' })
   @Get('logout')
   logout(@Res() res: Response) {
     return this.authService.logout(res);
