@@ -241,13 +241,8 @@ export class GoalsService {
         where: { goalId: id },
       });
 
-      // find todos to add and to remove
-      const todosToAdd = todos.filter(
-        (t) => !existingTodos.some((e) => e.id === t.id),
-      );
-      const todoIdsToRemove = existingTodos
-        .filter((e) => !todos.some((t) => t.id === e.id))
-        .map((e) => e.id);
+      // find new todos to add
+      const todosToAdd = todos.filter((t) => !t.id);
 
       // add new todos
       await this.prisma.todo.createMany({
@@ -259,6 +254,14 @@ export class GoalsService {
           goalId: id,
         })),
       });
+
+      // find todos to add and to remove
+      const todosToUpdate = todos.filter(
+        (t) => !existingTodos.some((e) => e.id === t.id),
+      );
+      const todoIdsToRemove = existingTodos
+        .filter((e) => !todos.some((t) => t.id === e.id))
+        .map((e) => e.id);
 
       // Remove todos
       await this.prisma.todo.deleteMany({
@@ -273,9 +276,9 @@ export class GoalsService {
         data: {
           ...updatedData,
           imageUrl,
-          todos: updateGoalDto.todos
+          todos: todosToUpdate.length
             ? {
-                upsert: updateGoalDto.todos.map((todo) => ({
+                upsert: todosToUpdate.map((todo) => ({
                   where: { id: todo.id },
                   create: {
                     title: todo.title,
