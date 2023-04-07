@@ -114,7 +114,7 @@ export class GoalsService {
     req: CustomRequest,
     s3Service: S3Service,
   ) {
-    const { title, description, importance, vision } = createGoalDto;
+    const { title, description } = createGoalDto;
     // get the user id from the JWT token
     const userId = req.user.id;
 
@@ -139,8 +139,6 @@ export class GoalsService {
         title,
         imageUrl,
         description,
-        importance,
-        vision,
         completed: false,
         user: { connect: { id: userId } },
       },
@@ -166,8 +164,6 @@ export class GoalsService {
         title: true,
         imageUrl: true,
         description: true,
-        importance: true,
-        vision: true,
         completed: true,
         createdAt: true,
       },

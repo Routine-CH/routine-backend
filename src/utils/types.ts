@@ -29,7 +29,7 @@ export type UpdateData = {
 
 export type TableNames =
   | 'goals'
-  | 'tasks'
+  | 'todos'
   | 'journals'
   | 'meditations'
   | 'pomodoro-timers'

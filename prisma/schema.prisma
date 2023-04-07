@@ -28,7 +28,7 @@ model User {
   userLogins         UserStreaks[]    @relation("UserStreakCount")
   userJournals       Journal[]        @relation("UserJournals")
   userGoals          Goal[]           @relation("UserGoals")
-  userTodo           Todo[]           @relation("UserTasks")
+  userTodo           Todo[]           @relation("UserTodos")
   userPomodoroTimers PomodoroTimers[] @relation("UserPomodoroTimers")
   userMeditations    Meditations[]    @relation("UserMeditations")
 
@@ -81,7 +81,7 @@ model Goal {
 
 model Todo {
   id          String   @id @default(uuid())
-  user        User     @relation("UserTasks", fields: [userId], references: [id])
+  user        User     @relation("UserTodos", fields: [userId], references: [id])
   userId      String
   title       String
   description String

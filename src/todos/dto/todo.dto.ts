@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CreateTaskDto {
+export class CreateTodoDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(5)
@@ -25,4 +25,4 @@ export class CreateTaskDto {
   public completed?: boolean;
 }
 
-export class UpdateTaskDto extends CreateTaskDto {}
+export class UpdateTodoDto extends CreateTodoDto {}

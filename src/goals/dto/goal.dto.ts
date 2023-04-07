@@ -10,16 +10,6 @@ export class CreateGoalRequestDto {
   @IsNotEmpty()
   @MinLength(5)
   public description: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public importance: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(5)
-  public vision: string;
 }
 
 export class CreateGoalDto {

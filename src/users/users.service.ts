@@ -241,8 +241,8 @@ export class UsersService {
         },
       });
 
-      // delete related tasks before deleting the user
-      await this.prisma.task.deleteMany({
+      // delete related todo before deleting the user
+      await this.prisma.todo.deleteMany({
         where: {
           userId: id,
         },
