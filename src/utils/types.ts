@@ -35,3 +35,10 @@ export type TableNames =
   | 'pomodoro-timers'
   | 'login-streaks'
   | 'login-count';
+
+export interface Todo {
+  id: string;
+  title: string;
+  description: string;
+  plannedDate: Date;
+}

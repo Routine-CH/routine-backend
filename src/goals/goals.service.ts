@@ -143,12 +143,14 @@ export class GoalsService {
         user: { connect: { id: userId } },
         todos: todos
           ? {
-              create: todos.map((todo) => ({
-                title: todo.title,
-                description: todo.description,
-                plannedDate: new Date(todo.plannedDate),
-                user: { connect: { id: userId } },
-              })),
+              create: Array.isArray(todos)
+                ? todos.map((todo) => ({
+                    title: todo.title,
+                    description: todo.description,
+                    plannedDate: new Date(todo.plannedDate),
+                    user: { connect: { id: userId } },
+                  }))
+                : undefined,
             }
           : undefined,
       },
@@ -174,6 +176,7 @@ export class GoalsService {
         title: true,
         imageUrl: true,
         description: true,
+        todos: true,
         completed: true,
         createdAt: true,
       },

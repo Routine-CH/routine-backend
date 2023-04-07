@@ -1,15 +1,16 @@
-import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
   IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
-  MaxLength,
   MinLength,
-  ValidateNested,
+  Validate,
 } from 'class-validator';
-import { CreateTodoDto, TodoDto } from 'src/todos/dto/todo.dto';
+import { Todo } from 'src/utils/types';
+
+function hasMaxFiveTodos(todos: Todo[]) {
+  return todos.length <= 5;
+}
 
 export class CreateGoalRequestDto {
   @IsString()
@@ -23,10 +24,9 @@ export class CreateGoalRequestDto {
   public description: string;
 
   @IsArray()
-  @MaxLength(5)
-  @ValidateNested({ each: true })
-  @Type(() => TodoDto)
-  public todos?: TodoDto[];
+  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @IsOptional()
+  public todos?: Todo[];
 }
 
 export class CreateGoalDto {
@@ -46,10 +46,9 @@ export class CreateGoalDto {
   public completed?: string;
 
   @IsArray()
-  @ArrayMinSize(0)
-  @MaxLength(5)
+  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
   @IsOptional()
-  public todos?: CreateTodoDto[];
+  public todos?: Todo[];
 }
 
 export class UpdateGoalDto {
@@ -68,9 +67,7 @@ export class UpdateGoalDto {
   public completed?: boolean;
 
   @IsArray()
-  @ArrayMinSize(0)
+  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
   @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => TodoDto)
-  public todos?: TodoDto[];
+  public todos?: Todo[];
 }
