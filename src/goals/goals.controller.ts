@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -55,12 +56,16 @@ export class GoalsController {
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async createGoal(
     @UploadedFile() file: Express.Multer.File,
-    @Body('todosJSON') todosJSON: string[] | undefined,
+    @Body('todosJSON') todosJSON: string | undefined,
     @Body() createGoalDto: CreateGoalRequestDto,
     @Req() req: CustomRequest,
   ) {
-    if (todosJSON && Array.isArray(todosJSON)) {
-      createGoalDto.todos = todosJSON.map((todo) => JSON.parse(todo));
+    if (todosJSON) {
+      try {
+        createGoalDto.todos = JSON.parse(todosJSON);
+      } catch {
+        throw new BadRequestException('Invalid todosJSON format');
+      }
     } else {
       createGoalDto.todos = [];
     }

@@ -5,11 +5,21 @@ import {
   IsString,
   MinLength,
   Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 import { Todo } from 'src/utils/types';
 
-function hasMaxFiveTodos(todos: Todo[]) {
-  return todos.length <= 5;
+// check if todo array is 5 or less
+@ValidatorConstraint({ name: 'hasMaxFiveTodos' })
+export class HasMaxFiveTodosValidator implements ValidatorConstraintInterface {
+  validate(todos: Todo[]): boolean {
+    return todos.length <= 5;
+  }
+
+  defaultMessage(): string {
+    return 'Too many todos - maximum is 5';
+  }
 }
 
 export class CreateGoalRequestDto {
@@ -24,7 +34,7 @@ export class CreateGoalRequestDto {
   public description: string;
 
   @IsArray()
-  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @Validate(HasMaxFiveTodosValidator)
   @IsOptional()
   public todos?: Todo[];
 }
@@ -46,7 +56,7 @@ export class CreateGoalDto {
   public completed?: string;
 
   @IsArray()
-  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @Validate(HasMaxFiveTodosValidator)
   @IsOptional()
   public todos?: Todo[];
 }
@@ -67,7 +77,7 @@ export class UpdateGoalDto {
   public completed?: boolean;
 
   @IsArray()
-  @Validate(hasMaxFiveTodos, { message: 'Too many todos - maximum is 5' })
+  @Validate(HasMaxFiveTodosValidator)
   @IsOptional()
   public todos?: Todo[];
 }

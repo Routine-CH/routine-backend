@@ -244,32 +244,68 @@ export class GoalsService {
         where: { goalId: id },
       });
 
-      // find new todos to add
-      const todosToAdd = todos.filter((t) => !t.id);
+      // new todos to add
+      const newTodos = todos.filter((t) => !t.id);
 
-      // add new todos
-      await this.prisma.todo.createMany({
-        data: todosToAdd.map((todo) => ({
-          title: todo.title,
-          description: todo.description,
-          plannedDate: new Date(todo.plannedDate),
-          userId: req.user.id,
-          goalId: id,
-        })),
-      });
-
-      // find todos to add and to remove
-      const todosToUpdate = todos.filter(
-        (t) => !existingTodos.some((e) => e.id === t.id),
+      // existing todos to link
+      const existingTodosToLink = todos.filter(
+        (t) => t.id && !existingTodos.some((e) => e.id === t.id),
       );
+
+      // todos to update
+      const todosToUpdate = todos.filter(
+        (t) => t.id && existingTodos.some((e) => e.id === t.id),
+      );
+
+      // todos to remove/unlink
       const todoIdsToRemove = existingTodos
         .filter((e) => !todos.some((t) => t.id === e.id))
         .map((e) => e.id);
 
-      // Remove todos
-      await this.prisma.todo.deleteMany({
-        where: { id: { in: todoIdsToRemove } },
-      });
+      if (todos) {
+        // ddd new todos
+        await this.prisma.todo.createMany({
+          data: newTodos.map((todo) => ({
+            title: todo.title,
+            description: todo.description,
+            plannedDate: new Date(todo.plannedDate),
+            userId: req.user.id,
+            goalId: id,
+          })),
+        });
+
+        // link existing todos
+        if (existingTodosToLink.length > 0) {
+          await this.prisma.todo.updateMany({
+            where: { id: { in: existingTodosToLink.map((t) => t.id) } },
+            data: { goalId: id },
+          });
+        }
+
+        // remove/unlink todos
+        if (todoIdsToRemove.length > 0) {
+          await this.prisma.todo.updateMany({
+            where: { id: { in: todoIdsToRemove } },
+            data: { goalId: null },
+          });
+        }
+
+        // update todos
+        if (todosToUpdate.length > 0) {
+          await Promise.all(
+            todosToUpdate.map((todo) =>
+              this.prisma.todo.update({
+                where: { id: todo.id },
+                data: {
+                  title: todo.title,
+                  description: todo.description,
+                  plannedDate: new Date(todo.plannedDate),
+                },
+              }),
+            ),
+          );
+        }
+      }
 
       // update the goal
       const editGoal = await this.prisma.goal.update({
