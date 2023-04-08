@@ -1,87 +1,88 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+// gamification.interceptor.ts
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { NextFunction, Response } from 'express';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  getEarnedBadge,
+  getUserIdFromToken,
+} from 'src/utils/gamification/gamification.utils';
 import { BadgeInfo } from 'src/utils/return-types.ts/types';
 import { CustomRequest } from 'src/utils/types';
 
-function getUserIdFromToken(
-  token: string,
-  jwtService: JwtService,
-): string | null {
-  try {
-    const decodedToken = jwtService.verify(token);
-    return decodedToken.id;
-  } catch (error) {
-    console.error('Error verifying token: ', error);
-    return null;
-  }
-}
-
-// get badge according to the routher path
-async function getEarnedBadge(path: string, userId: string) {
-  if (
-    path.startsWith('/goals') ||
-    path.startsWith('/todos') ||
-    path.startsWith('/journals')
-  ) {
-    const tableName = path.startsWith('/goals')
-      ? 'goals'
-      : path.startsWith('/todos')
-      ? 'todos'
-      : 'journals';
-
-    const count: number = await this.getRecordCount(userId, tableName);
-    if ([10, 25, 50, 75, 100].includes(count)) {
-      return await this.assignBadge(userId, tableName, count);
-    }
-  } else if (
-    path.startsWith('/meditations') ||
-    path.startsWith('/pomodoro-timers')
-  ) {
-    const tableName = path.startsWith('/meditations')
-      ? 'meditations'
-      : 'pomodoro-timers';
-
-    const totalDuration = await this.getTotalDuration(userId, tableName);
-    if ([1800, 3600, 7200, 10800, 14400].includes(totalDuration)) {
-      return await this.assignBadge(userId, tableName, totalDuration);
-    }
-  }
-
-  return null;
-}
-
 @Injectable()
-export class GamificationMiddleware implements NestMiddleware {
+export class GamificationInterceptor implements NestInterceptor {
   constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
+    const httpContext = context.switchToHttp();
+    const request = httpContext.getRequest<CustomRequest>();
 
-  async use(req: CustomRequest, res: Response, next: NextFunction) {
-    // initialize earnedBadge
-    let earnedBadge: BadgeInfo | null = null;
+    // get method and path from request
+    const method = request.method;
+    const path = request.path;
+
+    // check if current route and method match
+    const shouldApplyLogic = [
+      { path: 'goals/:id', method: 'PUT' },
+      { path: 'todos/:id', method: 'PATCH' },
+      { path: 'journals', method: 'POST' },
+      { path: 'meditations', method: 'POST' },
+      { path: 'pomodoro-timers', method: 'POST' },
+      { path: 'auth/auth-check', method: 'GET' },
+    ].some(
+      (route) =>
+        path.startsWith(route.path.split(':')[0]) && method === route.method,
+    );
+
+    if (!shouldApplyLogic) {
+      return next.handle();
+    }
 
     // get token from request
-    const authHeader = req.headers.authorization;
+    const authHeader = request.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
-    //if token is valid
+    // if token is valid
     try {
       // if user is authenticated, extract userId from token
       const userId = getUserIdFromToken(token, this.jwtService);
       if (userId) {
         // get path from request
-        const path = req.path;
 
-        // Call getEarnedBadge function to get the earned badge
-        earnedBadge = await getEarnedBadge.call(this, path, userId);
+        // call getEarnedBadge function to get the earned badge
+        const earnedBadge = await getEarnedBadge.call(this, path, userId);
+
+        // assign the earnedBadge to the request object
+        request.user.earnedBadge = earnedBadge;
       }
-
-      // Call next with the earnedBadge as an argument
-      res.locals.earnedBadge = earnedBadge;
-      next();
     } catch (error) {
       console.log(error);
     }
+
+    return next.handle().pipe(
+      map((data) => {
+        const earnedBadge: BadgeInfo | null = request.user.earnedBadge;
+
+        // if an earnedBadge is found
+        if (earnedBadge) {
+          return {
+            ...data,
+            earnedBadge,
+          };
+        } else {
+          return data;
+        }
+      }),
+    );
   }
 
   // async getRecordCount of table
@@ -95,12 +96,12 @@ export class GamificationMiddleware implements NestMiddleware {
       switch (tableName) {
         case 'goals':
           count = await this.prisma.goal.count({
-            where: { userId: userId },
+            where: { userId: userId, completed: true },
           });
           break;
         case 'todos':
           count = await this.prisma.todo.count({
-            where: { userId: userId },
+            where: { userId: userId, completed: true },
           });
           break;
         case 'journals':
