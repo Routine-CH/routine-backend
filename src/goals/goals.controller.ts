@@ -94,12 +94,22 @@ export class GoalsController {
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async updateGoal(
     @Param('id') id: string,
+    @Body('todosJSON') todosJSON: string | undefined,
     @Body() updateGoalDto: UpdateGoalDto,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: CustomRequest,
   ) {
-    const buffer = file ? await fs.readFile(file.path) : undefined;
+    if (todosJSON) {
+      try {
+        updateGoalDto.todos = JSON.parse(todosJSON);
+      } catch {
+        throw new BadRequestException('Invalid todosJSON format');
+      }
+    } else {
+      updateGoalDto.todos = [];
+    }
 
+    const buffer = file ? await fs.readFile(file.path) : undefined;
     return await this.goalsService.updateGoal(
       id,
       buffer,

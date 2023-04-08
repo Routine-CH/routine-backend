@@ -237,7 +237,7 @@ export class GoalsService {
       }
 
       // updateGoalDto contains todos
-      const { todos } = updateGoalDto;
+      const { todos } = updatedData;
 
       // get existing todos for the goal
       const existingTodos = await this.prisma.todo.findMany({
