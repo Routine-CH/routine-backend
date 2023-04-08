@@ -95,12 +95,12 @@ export class GamificationMiddleware implements NestMiddleware {
       switch (tableName) {
         case 'goals':
           count = await this.prisma.goal.count({
-            where: { userId: userId },
+            where: { userId: userId, completed: true },
           });
           break;
         case 'todos':
           count = await this.prisma.todo.count({
-            where: { userId: userId },
+            where: { userId: userId, completed: true },
           });
           break;
         case 'journals':
