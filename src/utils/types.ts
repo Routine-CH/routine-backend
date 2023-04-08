@@ -38,7 +38,4 @@ export type TableNames =
 
 export interface Todo {
   id: string;
-  title: string;
-  description: string;
-  plannedDate: Date;
 }
