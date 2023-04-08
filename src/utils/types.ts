@@ -1,5 +1,6 @@
 import { UserBadges } from '@prisma/client';
 import { Request } from 'express';
+import { BadgeInfo } from './return-types.ts/types';
 
 export type User = {
   id: string;
@@ -8,6 +9,7 @@ export type User = {
   avatarUrl: string;
   badges: UserBadges[];
   exp?: number;
+  earnedBadge?: BadgeInfo | null;
 };
 
 export interface CustomRequest extends Request {

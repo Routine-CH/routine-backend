@@ -2,55 +2,14 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { NextFunction, Response } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  getEarnedBadge,
+  getUserIdFromToken,
+} from 'src/utils/gamification/gamification.utils';
 import { BadgeInfo } from 'src/utils/return-types.ts/types';
 import { CustomRequest } from 'src/utils/types';
 
-function getUserIdFromToken(
-  token: string,
-  jwtService: JwtService,
-): string | null {
-  try {
-    const decodedToken = jwtService.verify(token);
-    return decodedToken.id;
-  } catch (error) {
-    console.error('Error verifying token: ', error);
-    return null;
-  }
-}
-
 // get badge according to the routher path
-async function getEarnedBadge(path: string, userId: string) {
-  if (
-    path.startsWith('/goals') ||
-    path.startsWith('/todos') ||
-    path.startsWith('/journals')
-  ) {
-    const tableName = path.startsWith('/goals')
-      ? 'goals'
-      : path.startsWith('/todos')
-      ? 'todos'
-      : 'journals';
-
-    const count: number = await this.getRecordCount(userId, tableName);
-    if ([10, 25, 50, 75, 100].includes(count)) {
-      return await this.assignBadge(userId, tableName, count);
-    }
-  } else if (
-    path.startsWith('/meditations') ||
-    path.startsWith('/pomodoro-timers')
-  ) {
-    const tableName = path.startsWith('/meditations')
-      ? 'meditations'
-      : 'pomodoro-timers';
-
-    const totalDuration = await this.getTotalDuration(userId, tableName);
-    if ([1800, 3600, 7200, 10800, 14400].includes(totalDuration)) {
-      return await this.assignBadge(userId, tableName, totalDuration);
-    }
-  }
-
-  return null;
-}
 
 @Injectable()
 export class GamificationMiddleware implements NestMiddleware {
@@ -77,7 +36,7 @@ export class GamificationMiddleware implements NestMiddleware {
       }
 
       // Call next with the earnedBadge as an argument
-      res.locals.earnedBadge = earnedBadge;
+      req.user.earnedBadge = earnedBadge;
       next();
     } catch (error) {
       console.log(error);
