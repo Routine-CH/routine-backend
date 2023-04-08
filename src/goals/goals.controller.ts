@@ -5,8 +5,8 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
+  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -15,6 +15,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { S3Service } from 'src/s3/s3.service';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
@@ -26,6 +27,7 @@ export class GoalsController {
   constructor(
     private readonly goalsService: GoalsService,
     private readonly s3Service: S3Service,
+    private readonly prismaService: PrismaService,
   ) {}
 
   // get all goals by selected week
@@ -61,8 +63,15 @@ export class GoalsController {
     @Req() req: CustomRequest,
   ) {
     if (todosJSON) {
+      let parsedTodos: string[] = [];
       try {
-        createGoalDto.todos = JSON.parse(todosJSON);
+        parsedTodos = JSON.parse(todosJSON);
+        const todos = await Promise.all(
+          parsedTodos.map((todoId) =>
+            this.prismaService.todo.findUnique({ where: { id: todoId } }),
+          ),
+        );
+        createGoalDto.todos = todos;
       } catch {
         throw new BadRequestException('Invalid todosJSON format');
       }
@@ -89,7 +98,7 @@ export class GoalsController {
   }
 
   // edit goal
-  @Patch(':id')
+  @Put(':id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async updateGoal(
@@ -101,7 +110,13 @@ export class GoalsController {
   ) {
     if (todosJSON) {
       try {
-        updateGoalDto.todos = JSON.parse(todosJSON);
+        const todoIds = JSON.parse(todosJSON);
+        const todos = await Promise.all(
+          todoIds.map((todoId) =>
+            this.prismaService.todo.findUnique({ where: { id: todoId } }),
+          ),
+        );
+        updateGoalDto.todos = todos;
       } catch {
         throw new BadRequestException('Invalid todosJSON format');
       }
