@@ -86,12 +86,12 @@ export class GamificationInterceptor implements NestInterceptor {
             }
             break;
           case path.startsWith('/pomodoro-timers'):
-            if (method === 'POST' && request.body.totalDuration >= 1800) {
+            if (method === 'POST' && request.body.durationInSeconds >= 1800) {
               xp = 10;
             }
             break;
           case path.startsWith('/meditations'):
-            if (method === 'POST' && request.body.totalDuration >= 1800) {
+            if (method === 'POST' && request.body.durationInSeconds >= 1800) {
               xp = 10;
             }
             break;
