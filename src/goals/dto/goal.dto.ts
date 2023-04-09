@@ -1,5 +1,7 @@
+import { Transform } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -53,6 +55,7 @@ export class CreateGoalDto {
   @MinLength(5)
   public description: string;
 
+  @IsBoolean()
   public completed?: string;
 
   @IsArray()
@@ -74,6 +77,9 @@ export class UpdateGoalDto {
   @IsOptional()
   public description?: string;
 
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  @IsBoolean()
   public completed?: boolean;
 
   @IsArray()

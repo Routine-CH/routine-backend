@@ -10,6 +10,7 @@ export type User = {
   badges: UserBadges[];
   exp?: number;
   earnedBadge?: BadgeInfo | null;
+  experience?: number;
 };
 
 export interface CustomRequest extends Request {

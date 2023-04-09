@@ -214,9 +214,7 @@ export class GoalsService {
     // check if the user is the owner of the goal
     if (req.user.id === goalToEdit.userId) {
       //convert completed field to boolean
-      const updatedData = {
-        ...updateGoalDto,
-      };
+      const { title, description, todos, completed } = updateGoalDto;
 
       // initialize imageUrl as existing  or undefined
       let imageUrl: string | undefined = goalToEdit.imageUrl;
@@ -232,8 +230,8 @@ export class GoalsService {
         imageUrl = await this.s3Service.uploadImage(buffer, mimetype, key);
       }
 
-      // updateGoalDto contains todos
-      const { todos } = updatedData;
+      // convert completed field to boolean
+      const isCompleted = completed ? Boolean(completed) : false;
 
       /// update the goal
       const editGoal = await this.prisma.goal.update({
@@ -241,7 +239,9 @@ export class GoalsService {
           id: id,
         },
         data: {
-          ...updatedData,
+          title: title,
+          description: description,
+          completed: isCompleted,
           imageUrl,
           todos: todos
             ? {

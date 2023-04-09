@@ -1,8 +1,16 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
+import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { CustomRequest } from 'src/utils/types';
 import { CreateMeditationDto } from './dto/meditation.dto';
-
 import { MeditationsService } from './meditations.service';
 
 @Controller('meditations')
@@ -19,6 +27,7 @@ export class MeditationsController {
   // post a meditation
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   async upsertMeditation(
     @Body() createMeditationDto: CreateMeditationDto,
     @Req() req: CustomRequest,

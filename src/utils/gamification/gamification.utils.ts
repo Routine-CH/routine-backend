@@ -45,3 +45,13 @@ export async function getEarnedBadge(path: string, userId: string) {
 
   return null;
 }
+
+export async function awardExperiencePoints(
+  userId: string,
+  xp: number,
+): Promise<void> {
+  await this.prisma.user.update({
+    where: { id: userId },
+    data: { experience: { increment: xp } },
+  });
+}

@@ -15,6 +15,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
+import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { S3Service } from 'src/s3/s3.service';
 import { CustomRequest } from 'src/utils/types';
@@ -55,6 +56,7 @@ export class GoalsController {
   // create goal
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async createGoal(
     @UploadedFile() file: Express.Multer.File,
@@ -100,11 +102,13 @@ export class GoalsController {
   // edit goal
   @Put(':id')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
   async updateGoal(
     @Param('id') id: string,
     @Body('todosJSON') todosJSON: string | undefined,
     @Body() updateGoalDto: UpdateGoalDto,
+    @Body('completed') completed: boolean | undefined,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: CustomRequest,
   ) {
@@ -123,6 +127,8 @@ export class GoalsController {
     } else {
       updateGoalDto.todos = [];
     }
+
+    updateGoalDto.completed = completed;
 
     const buffer = file ? await fs.readFile(file.path) : undefined;
     return await this.goalsService.updateGoal(

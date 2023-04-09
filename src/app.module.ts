@@ -4,14 +4,11 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt.guard';
 import { GoalsModule } from './goals/goals.module';
-import { GamificationInterceptor } from './interceptors/gamification.interceptor';
 import { JournalsModule } from './journals/journals.module';
 import { MeditationsModule } from './meditations/meditations.module';
 import { AuthTrackMiddleware } from './middlewares/auth-track.middleware';
@@ -23,6 +20,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { S3Service } from './s3/s3.service';
 import { TodosModule } from './todos/todos.module';
 import { UsersModule } from './users/users.module';
+import { SharedModule } from './utils/modules/shared-module';
 
 @Module({
   imports: [
@@ -34,11 +32,7 @@ import { UsersModule } from './users/users.module';
     TodosModule,
     PomodoroTimersModule,
     MeditationsModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-    }),
-    PomodoroTimersModule,
-    MeditationsModule,
+    SharedModule,
   ],
   controllers: [AppController, PomodoroTimersController],
   providers: [
@@ -47,7 +41,6 @@ import { UsersModule } from './users/users.module';
     { provide: 'APP_GUARD', useClass: JwtAuthGuard },
     S3Service,
     PomodoroTimersService,
-    { provide: APP_INTERCEPTOR, useClass: GamificationInterceptor },
   ],
 })
 export class AppModule implements NestModule {
