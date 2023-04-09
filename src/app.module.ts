@@ -4,7 +4,6 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -21,6 +20,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { S3Service } from './s3/s3.service';
 import { TodosModule } from './todos/todos.module';
 import { UsersModule } from './users/users.module';
+import { SharedModule } from './utils/modules/shared-module';
 
 @Module({
   imports: [
@@ -32,11 +32,7 @@ import { UsersModule } from './users/users.module';
     TodosModule,
     PomodoroTimersModule,
     MeditationsModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-    }),
-    PomodoroTimersModule,
-    MeditationsModule,
+    SharedModule,
   ],
   controllers: [AppController, PomodoroTimersController],
   providers: [
