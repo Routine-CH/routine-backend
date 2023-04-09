@@ -12,7 +12,6 @@ import { GoalsModule } from './goals/goals.module';
 import { JournalsModule } from './journals/journals.module';
 import { MeditationsModule } from './meditations/meditations.module';
 import { AuthTrackMiddleware } from './middlewares/auth-track.middleware';
-import { MulterMiddleware } from './middlewares/multer-middleware';
 import { PomodoroTimersController } from './pomodoro-timers/pomodoro-timers.controller';
 import { PomodoroTimersModule } from './pomodoro-timers/pomodoro-timers.module';
 import { PomodoroTimersService } from './pomodoro-timers/pomodoro-timers.service';
@@ -54,11 +53,5 @@ export class AppModule implements NestModule {
         { path: 'users/register', method: RequestMethod.POST },
       )
       .forRoutes({ path: 'auth/auth-check', method: RequestMethod.GET });
-    consumer
-      .apply(MulterMiddleware)
-      .forRoutes(
-        { path: '/goals', method: RequestMethod.PUT },
-        { path: '/todos', method: RequestMethod.PATCH },
-      );
   }
 }

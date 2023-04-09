@@ -70,21 +70,21 @@ export class GamificationInterceptor implements NestInterceptor {
 
         // check path and assign xp
         switch (true) {
-          case path.startsWith('/auth-check'):
-            if (method === 'GET') {
-              xp = 10;
-            }
-            break;
           case path.startsWith('/journals'):
             if (method === 'POST') {
               xp = 10;
             }
             break;
-          case path.startsWith('/goals/') || path.startsWith('/todos/'):
-            if (method === 'PUT' && request.body.completed === true) {
+          case path.startsWith('/goals'):
+            const isCompleted = Boolean(request.body.completed);
+            if (method === 'PUT' && isCompleted === true) {
               xp = 10;
             }
             break;
+          case path.startsWith('/todos'):
+            if (method === 'PATCH' && request.body.completed === true) {
+              xp = 10;
+            }
           case path.startsWith('/pomodoro-timers'):
             if (method === 'POST' && request.body.durationInSeconds >= 1800) {
               xp = 10;
