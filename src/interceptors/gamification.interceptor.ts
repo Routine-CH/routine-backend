@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  awardExperiencePoints,
   getEarnedBadge,
   getUserIdFromToken,
 } from 'src/utils/gamification/gamification.utils';
@@ -32,12 +33,12 @@ export class GamificationInterceptor implements NestInterceptor {
 
     // check if current route and method match
     const shouldApplyLogic = [
-      { path: 'goals/:id', method: 'PUT' },
-      { path: 'todos/:id', method: 'PATCH' },
-      { path: 'journals', method: 'POST' },
-      { path: 'meditations', method: 'POST' },
-      { path: 'pomodoro-timers', method: 'POST' },
-      { path: 'auth/auth-check', method: 'GET' },
+      { path: '/goals/:id', method: 'PUT' },
+      { path: '/todos/:id', method: 'PATCH' },
+      { path: '/journals', method: 'POST' },
+      { path: '/meditations', method: 'POST' },
+      { path: '/pomodoro-timers', method: 'POST' },
+      { path: '/auth/auth-check', method: 'GET' },
     ].some(
       (route) =>
         path.startsWith(route.path.split(':')[0]) && method === route.method,
@@ -63,6 +64,45 @@ export class GamificationInterceptor implements NestInterceptor {
 
         // assign the earnedBadge to the request object
         request.user.earnedBadge = earnedBadge;
+
+        // award experience points to the user
+        let xp = 0;
+
+        // check path and assign xp
+        switch (true) {
+          case path.startsWith('/auth-check'):
+            if (method === 'GET') {
+              xp = 10;
+            }
+            break;
+          case path.startsWith('/journals'):
+            if (method === 'POST') {
+              xp = 10;
+            }
+            break;
+          case path.startsWith('/goals/') || path.startsWith('/todos/'):
+            if (method === 'PUT' && request.body.completed === true) {
+              xp = 10;
+            }
+            break;
+          case path.startsWith('/pomodoro-timers'):
+            if (method === 'POST' && request.body.totalDuration >= 1800) {
+              xp = 10;
+            }
+            break;
+          case path.startsWith('/meditations'):
+            if (method === 'POST' && request.body.totalDuration >= 1800) {
+              xp = 10;
+            }
+            break;
+        }
+
+        const experiencePoints = await awardExperiencePoints.call(
+          this,
+          userId,
+          xp,
+        );
+        request.user.experience = experiencePoints;
       }
     } catch (error) {
       console.log(error);
@@ -70,14 +110,18 @@ export class GamificationInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) => {
-        const earnedBadge: BadgeInfo | null = request.user.earnedBadge;
-
-        // if an earnedBadge is found
-        if (earnedBadge) {
-          return {
-            ...data,
-            earnedBadge,
-          };
+        if (shouldApplyLogic) {
+          const earnedBadge: BadgeInfo | null =
+            request.user.earnedBadge || null;
+          // if an earnedBadge is found
+          if (earnedBadge) {
+            return {
+              ...data,
+              earnedBadge,
+            };
+          } else {
+            return data;
+          }
         } else {
           return data;
         }

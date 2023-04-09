@@ -108,6 +108,7 @@ export class GoalsController {
     @Param('id') id: string,
     @Body('todosJSON') todosJSON: string | undefined,
     @Body() updateGoalDto: UpdateGoalDto,
+    @Body('completed') completed: boolean | undefined,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: CustomRequest,
   ) {
@@ -126,6 +127,8 @@ export class GoalsController {
     } else {
       updateGoalDto.todos = [];
     }
+
+    updateGoalDto.completed = completed;
 
     const buffer = file ? await fs.readFile(file.path) : undefined;
     return await this.goalsService.updateGoal(
