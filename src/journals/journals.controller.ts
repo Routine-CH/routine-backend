@@ -8,7 +8,9 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
@@ -43,6 +45,7 @@ export class JournalsController {
   // Post journal
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   async createJournal(
     @Body() createJournalDto: CreateJournalDto,
     @Req() req: CustomRequest,
@@ -60,6 +63,7 @@ export class JournalsController {
   // edit journal
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   async updateJournal(
     @Param('id') id: string,
     @Body() updateJournalDto: UpdateJournalDto,

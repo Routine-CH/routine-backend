@@ -6,8 +6,10 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { Public } from 'src/utils/constants';
 import { CustomRequest } from 'src/utils/types';
 import { AuthService } from './auth.service';
@@ -36,6 +38,7 @@ export class AuthController {
   // auth check route
   @Get('auth-check')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   async authCheck() {
     return { message: 'Authenticated and login tracked' };
   }

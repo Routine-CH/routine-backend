@@ -8,7 +8,9 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CreateTodoDto, UpdateTodoDto } from './dto/todo.dto';
@@ -43,6 +45,7 @@ export class TodosController {
   // post todo
   @Post()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   async createTodo(
     @Body() createTodoDto: CreateTodoDto,
     @Req() req: CustomRequest,
@@ -60,6 +63,7 @@ export class TodosController {
   // edit todo
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(GamificationInterceptor)
   async updateTodo(
     @Param('id') id: string,
     @Body() updateTodoDto: UpdateTodoDto,

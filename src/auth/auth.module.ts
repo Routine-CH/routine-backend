@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
 import { AuthController } from './auth.controller';
@@ -27,6 +28,7 @@ import { JwtRefreshTokenStrategy, JwtStrategy } from './jwt.strategy';
     JwtStrategy,
     JwtRefreshTokenStrategy,
     JwtRefreshTokenAuthGuard,
+    GamificationInterceptor,
   ],
 })
 export class AuthModule {}
