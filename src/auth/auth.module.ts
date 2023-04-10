@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -29,6 +29,25 @@ import { JwtRefreshTokenStrategy, JwtStrategy } from './jwt.strategy';
     JwtRefreshTokenStrategy,
     JwtRefreshTokenAuthGuard,
     GamificationInterceptor,
+    {
+      provide: 'JWT_SERVICE',
+      useFactory: () => {
+        return new JwtService({
+          secret: jwtSecret,
+          signOptions: { expiresIn: '1d' },
+        });
+      },
+    },
+    {
+      provide: 'JWT_REFRESH_SERVICE',
+      useFactory: () => {
+        return new JwtService({
+          secret: jwtRefreshTokenSecret,
+          signOptions: { expiresIn: '7d' },
+        });
+      },
+    },
   ],
+  exports: ['JWT_SERVICE', 'JWT_REFRESH_SERVICE'],
 })
 export class AuthModule {}
