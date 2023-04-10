@@ -37,7 +37,7 @@ export class AuthTrackMiddleware implements NestMiddleware {
       }
       next();
     } catch (error) {
-      console.error('Error in AuthTrackMiddleware:', error); // Add this line
+      console.error('Error in AuthTrackMiddleware:', error);
       res.redirect('/auth/refresh-token');
     }
   }
