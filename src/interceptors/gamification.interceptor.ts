@@ -6,6 +6,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { isSameDay } from 'date-fns';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -75,6 +76,42 @@ export class GamificationInterceptor implements NestInterceptor {
 
         // check path and assign xp
         switch (true) {
+          case path.startsWith('/auth/auth-check'):
+            if (method === 'GET') {
+              const userStreak = await this.prisma.userStreaks.findFirst({
+                where: {
+                  userId: request.user.id,
+                },
+                select: {
+                  id: true,
+                  lastLoginDate: true,
+                  lastBonusDate: true,
+                },
+              });
+
+              // check difference in days and give exp
+              if (userStreak) {
+                const currentDate = new Date();
+
+                if (
+                  userStreak.lastBonusDate === null ||
+                  !isSameDay(userStreak.lastLoginDate, userStreak.lastBonusDate)
+                ) {
+                  xp = 10;
+
+                  // update lastBonusDate
+                  await this.prisma.userStreaks.update({
+                    where: {
+                      id: userStreak.id,
+                    },
+                    data: {
+                      lastBonusDate: currentDate,
+                    },
+                  });
+                }
+              }
+            }
+            break;
           case path.startsWith('/journals'):
             if (method === 'POST') {
               xp = 10;

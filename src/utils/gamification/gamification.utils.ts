@@ -236,6 +236,12 @@ export async function updateStreak(userId: string, prisma: PrismaService) {
     where: {
       userId: userId,
     },
+    select: {
+      id: true,
+      streakCount: true,
+      loginCount: true,
+      lastLoginDate: true,
+    },
   });
 
   // if there is an existing record, update it
