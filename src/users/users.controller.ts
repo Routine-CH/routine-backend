@@ -15,6 +15,7 @@ import { promises as fs } from 'fs';
 import { diskStorage } from 'multer';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
+import { ToggleNotificationDto } from './dto/toggle-notification.dto';
 import { UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
@@ -61,6 +62,19 @@ export class UsersController {
       file?.mimetype,
       file?.originalname,
       req,
+    );
+  }
+
+  // toggle notificationSettings
+  @Patch(':id/notification-settings')
+  @UseGuards(JwtAuthGuard)
+  async toggleNotification(
+    @Param('id') id: string,
+    @Body() toggleNotificationDto: ToggleNotificationDto,
+  ) {
+    return await this.usersService.toggleNotification(
+      id,
+      toggleNotificationDto,
     );
   }
 

@@ -60,16 +60,6 @@ export class AuthService {
   async signUp(dto: CreateUserDto) {
     const { username, email, password } = dto;
 
-    // check if email already exists
-    const emailAlreadyExists = await this.prisma.user.findUnique({
-      where: { email: email },
-    });
-    if (emailAlreadyExists) {
-      throw new BadRequestException(
-        'E-Mail already exists. Please try another E-Mail.',
-      );
-    }
-
     // check if user already exists
     const userAlreadyExists = await this.prisma.user.findUnique({
       where: { username: username },
@@ -80,13 +70,41 @@ export class AuthService {
       );
     }
 
+    // check if email already exists
+    const emailAlreadyExists = await this.prisma.user.findUnique({
+      where: { email: email },
+    });
+    if (emailAlreadyExists) {
+      throw new BadRequestException(
+        'E-Mail already exists. Please try another E-Mail.',
+      );
+    }
+
     // save hashed password from the current password
     const hashedPassword = await this.hashPassword(password);
 
     // create user with prisma
-    await this.prisma.user.create({
+    const userCreated = await this.prisma.user.create({
       data: { username, email, password: hashedPassword },
     });
+
+    if (userCreated) {
+      await this.prisma.notificationSettings.create({
+        data: {
+          userId: userCreated.id,
+          goalsEmailNotification: false,
+          goalsPushNotification: false,
+          todosEmailNotification: false,
+          todosPushNotification: false,
+          journalsEmailNotification: false,
+          journalsPushNotification: false,
+          muteAllNotifications: true,
+          muteGamification: false,
+        },
+      });
+    } else {
+      return new BadRequestException('Something went wrong. Please try again.');
+    }
 
     return { message: 'Signup was successful' };
   }

@@ -5,8 +5,14 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/s3/s3.service';
-import { CustomRequest, UpdateData } from 'src/utils/types';
+import {
+  CustomRequest,
+  NotificationType,
+  NotificationUpdateData,
+  UpdateData,
+} from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
+import { ToggleNotificationDto } from './dto/toggle-notification.dto';
 import { UpdateUserDto } from './dto/user.dto';
 
 @Injectable()
@@ -218,6 +224,63 @@ export class UsersService {
     }
   }
 
+  // notificationSettings user
+  async toggleNotification(userId: string, dto: ToggleNotificationDto) {
+    const { notificationType, isEnabled } = dto;
+
+    // get user from the database
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    // if no user is found, throw an error
+    if (!user) {
+      throw new NotFoundException('User not found');
+    } else {
+      const updateData: NotificationUpdateData = {
+        [notificationType]: isEnabled,
+      };
+
+      // check if mute all notification is true based on the notificationType
+      if (notificationType === NotificationType.MUTE_ALL) {
+        if (isEnabled) {
+          // set all other notification to false
+          updateData.goalsEmailNotification = false;
+          updateData.goalsPushNotification = false;
+          updateData.todosEmailNotification = false;
+          updateData.todosPushNotification = false;
+          updateData.journalsEmailNotification = false;
+          updateData.journalsPushNotification = false;
+        }
+      } else {
+        // if another notification is toggled, set mute all to false
+        if (isEnabled) {
+          updateData.muteAllNotifications = false;
+        } else {
+          // check if all settings are false, set mute all to true
+          const settings = await this.prisma.notificationSettings.findUnique({
+            where: { userId: user.id },
+          });
+          const allNotificationsDisabled = Object.values(
+            NotificationType,
+          ).every((type) => {
+            return (
+              type === notificationType ||
+              type === NotificationType.MUTE_GAMIFICATION ||
+              !settings[type]
+            );
+          });
+          if (allNotificationsDisabled) updateData.muteAllNotifications = true;
+        }
+      }
+
+      const updatedSettings = await this.prisma.notificationSettings.update({
+        where: { userId: user.id },
+        data: updateData,
+      });
+
+      return updatedSettings;
+    }
+  }
+
   // delete user
   async deleteUser(id: string, req: CustomRequest) {
     // get user from the database
@@ -278,6 +341,20 @@ export class UsersService {
 
       // delete related user badges before deleting the user
       await this.prisma.userBadges.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete related user streaks before deleting the user
+      await this.prisma.userStreaks.deleteMany({
+        where: {
+          userId: id,
+        },
+      });
+
+      // delete relates user notifications before deleting the user
+      await this.prisma.notificationSettings.deleteMany({
         where: {
           userId: id,
         },

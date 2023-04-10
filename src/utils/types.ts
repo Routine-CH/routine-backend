@@ -42,3 +42,18 @@ export type TableNames =
 export interface Todo {
   id: string;
 }
+
+export enum NotificationType {
+  GOALS_EMAIL = 'goalsEmailNotification',
+  GOALS_PUSH = 'goalsPushNotification',
+  TODOS_EMAIL = 'todosEmailNotification',
+  TODOS_PUSH = 'todosPushNotification',
+  JOURNALS_EMAIL = 'journalsEmailNotification',
+  JOURNALS_PUSH = 'journalsPushNotification',
+  MUTE_ALL = 'muteAllNotifications',
+  MUTE_GAMIFICATION = 'muteGamification',
+}
+
+export type NotificationUpdateData = Partial<{
+  [key in NotificationType]: boolean;
+}>;
