@@ -35,7 +35,7 @@ export async function getEarnedBadge(
 
     const count: number = await getRecordCount(userId, tableName, prisma);
     if ([10, 25, 50, 75, 100].includes(count)) {
-      return await this.assignBadge(userId, tableName, count);
+      return await assignBadge(userId, count, tableName);
     }
   } else if (
     path.startsWith('/meditations') ||
@@ -47,7 +47,13 @@ export async function getEarnedBadge(
 
     const totalDuration = await getTotalDuration(userId, tableName, prisma);
     if ([1800, 3600, 7200, 10800, 14400].includes(totalDuration)) {
-      return await assignBadge(userId, totalDuration);
+      return await assignBadge(userId, totalDuration, tableName);
+    }
+  } else if (path.startsWith('/auth/auth-check')) {
+    await updateStreak(userId, prisma);
+    const badge = await checkLoginStreaks(userId, prisma);
+    if (badge) {
+      return badge;
     }
   }
 
@@ -55,7 +61,7 @@ export async function getEarnedBadge(
 }
 
 // async getRecordCount of table
-export async function getRecordCount(
+async function getRecordCount(
   userId: string,
   tableName: 'goals' | 'todos' | 'journals',
   prisma: PrismaService,
@@ -97,7 +103,7 @@ export async function getRecordCount(
 }
 
 // async getTotalDuration of table
-export async function getTotalDuration(
+async function getTotalDuration(
   userId: string,
   tableName: 'meditations' | 'pomodoro-timers',
   prisma: PrismaService,
@@ -141,40 +147,39 @@ export async function getTotalDuration(
 }
 
 // check loginstreaks
-export async function checkLoginStreaks(userId: string) {
-  const userStreaks = await this.prisma.userStreaks.findFirst({
+async function checkLoginStreaks(userId: string, prisma: PrismaService) {
+  const userStreaks = await prisma.userStreaks.findFirst({
     where: { userId: userId },
   });
 
-  // assign badges based on the login streaks or login count
-  if (userStreaks.streakCount <= 35) {
-    const loginStreaks = [7, 14, 21, 28, 35];
-    const foundStreak = loginStreaks.find(
-      (streak) => userStreaks.streakCount >= streak,
-    );
-    if (foundStreak) {
-      await this.assignBadge(userId, foundStreak);
-    }
-  } else if (userStreaks.loginCount <= 100) {
-    const loginCounts = [10, 25, 50, 75, 100];
-    const foundCount = loginCounts.find(
-      (count) => userStreaks.loginCount >= count,
-    );
-    if (foundCount) {
-      await this.assignBadge(userId, foundCount);
-    }
+  if (!userStreaks) {
+    return null;
   }
+
+  const loginStreakThresholds = [7, 14, 21, 28, 35];
+  const loginCountThresholds = [10, 25, 50, 75, 100];
+
+  // assign badges based on the login streaks or login count
+  if (loginStreakThresholds.includes(userStreaks.streakCount)) {
+    return await assignBadge(userId, userStreaks.streakCount, 'login-streak');
+  } else if (loginCountThresholds.includes(userStreaks.loginCount)) {
+    return await assignBadge(userId, userStreaks.loginCount, 'login-count');
+  }
+
+  return null;
 }
 
 // asign badge function
-export async function assignBadge(
+async function assignBadge(
   userId: string,
   countOrDuration: number,
+  activityType: string,
 ): Promise<BadgeInfo | null> {
   // get all badges that meet the count or the duration
   const eligibleBadges = await this.prisma.badge.findMany({
     where: {
       requiredCountOrDuration: countOrDuration,
+      activityType: activityType,
     },
   });
 

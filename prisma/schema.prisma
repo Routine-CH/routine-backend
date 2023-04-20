@@ -153,6 +153,7 @@ model Badge {
   title                   String
   description             String
   imageUrl                String
+  acitivityType           String
   requiredCountOrDuration Int
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt
