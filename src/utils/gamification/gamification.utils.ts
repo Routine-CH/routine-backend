@@ -269,94 +269,51 @@ async function assignBadge(
   activityType: string,
   prisma?: PrismaService,
 ): Promise<BadgeInfo | null> {
-  if (prisma) {
-    // get all badges that meet the count or the duration
-    const eligibleBadges = await prisma.badge.findMany({
+  // use the passed in prisma instance or the default one
+  const db = prisma ?? this.prisma;
+
+  // get all badges that meet the count or the duration
+  const eligibleBadges = await db.badge.findMany({
+    where: {
+      requiredCountOrDuration: countOrDuration,
+      activityType: activityType,
+    },
+  });
+
+  // if no eligibla badges are found
+  if (eligibleBadges.length === 0) {
+    return null;
+  }
+
+  // find a badge that the user has not earned yet
+  let unassignedBadge = null;
+  for (const badge of eligibleBadges) {
+    const userBadge = await db.userBadges.findFirst({
       where: {
-        requiredCountOrDuration: countOrDuration,
-        activityType: activityType,
+        userId: userId,
+        badgeId: badge.id,
+      },
+    });
+    if (!userBadge) {
+      unassignedBadge = badge;
+      break;
+    }
+  }
+
+  // assign badge to user if an unassigned badge is found
+  if (unassignedBadge) {
+    await db.userBadges.create({
+      data: {
+        userId: userId,
+        badgeId: unassignedBadge.id,
       },
     });
 
-    // if no eligibla badges are found
-    if (eligibleBadges.length === 0) {
-      return null;
-    }
-
-    // find a badge that the user has not earned yet
-    let unassignedBadge = null;
-    for (const badge of eligibleBadges) {
-      const userBadge = await prisma.userBadges.findFirst({
-        where: {
-          userId: userId,
-          badgeId: badge.id,
-        },
-      });
-      if (!userBadge) {
-        unassignedBadge = badge;
-        break;
-      }
-    }
-
-    // assign badge to user if an unassigned badge is found
-    if (unassignedBadge) {
-      await prisma.userBadges.create({
-        data: {
-          userId: userId,
-          badgeId: unassignedBadge.id,
-        },
-      });
-
-      return {
-        title: unassignedBadge.title,
-        description: unassignedBadge.description,
-        imageUrl: unassignedBadge.image,
-      };
-    }
-  } else {
-    // get all badges that meet the count or the duration
-    const eligibleBadges = await this.prisma.badge.findMany({
-      where: {
-        requiredCountOrDuration: countOrDuration,
-        activityType: activityType,
-      },
-    });
-
-    // if no eligibla badges are found
-    if (eligibleBadges.length === 0) {
-      return null;
-    }
-
-    // find a badge that the user has not earned yet
-    let unassignedBadge = null;
-    for (const badge of eligibleBadges) {
-      const userBadge = await this.prisma.userBadges.findFirst({
-        where: {
-          userId: userId,
-          badgeId: badge.id,
-        },
-      });
-      if (!userBadge) {
-        unassignedBadge = badge;
-        break;
-      }
-    }
-
-    // assign badge to user if an unassigned badge is found
-    if (unassignedBadge) {
-      await this.prisma.userBadges.create({
-        data: {
-          userId: userId,
-          badgeId: unassignedBadge.id,
-        },
-      });
-
-      return {
-        title: unassignedBadge.title,
-        description: unassignedBadge.description,
-        imageUrl: unassignedBadge.image,
-      };
-    }
+    return {
+      title: unassignedBadge.title,
+      description: unassignedBadge.description,
+      imageUrl: unassignedBadge.image,
+    };
   }
 
   // if user badge is found, return null
