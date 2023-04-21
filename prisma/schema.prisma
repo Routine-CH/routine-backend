@@ -12,7 +12,7 @@ datasource db {
 }
 
 model User {
-  id                   String       @id @default(uuid())
+  id                   String       @id @unique @default(uuid())
   email                String       @unique
   username             String       @unique
   avatarUrl            String?
@@ -55,7 +55,7 @@ model NotificationSettings {
 }
 
 model UserStreaks {
-  id            String    @id @default(uuid())
+  id            String    @id @unique @default(uuid())
   user          User      @relation("UserStreakCount", fields: [userId], references: [id])
   userId        String
   lastLoginDate DateTime  @default(now())
@@ -68,7 +68,7 @@ model UserStreaks {
 }
 
 model Journal {
-  id              String   @id @default(uuid())
+  id              String   @id @unique @default(uuid())
   user            User     @relation("UserJournals", fields: [userId], references: [id])
   userId          String
   title           String
@@ -84,7 +84,7 @@ model Journal {
 }
 
 model Goal {
-  id          String   @id @default(uuid())
+  id          String   @id @unique @default(uuid())
   user        User     @relation("UserGoals", fields: [userId], references: [id])
   userId      String
   title       String
@@ -100,7 +100,7 @@ model Goal {
 }
 
 model Todo {
-  id          String   @id @default(uuid())
+  id          String   @id @unique @default(uuid())
   user        User     @relation("UserTodos", fields: [userId], references: [id])
   userId      String
   title       String
@@ -118,7 +118,7 @@ model Todo {
 }
 
 model PomodoroTimers {
-  id            String @id @default(uuid())
+  id            String @id @unique @default(uuid())
   user          User   @relation("UserPomodoroTimers", fields: [userId], references: [id])
   userId        String
   totalDuration Int    @default(0)
@@ -128,7 +128,7 @@ model PomodoroTimers {
 }
 
 model Track {
-  id          String   @id @default(uuid())
+  id          String   @id @unique @default(uuid())
   title       String
   imageUrl    String
   audioUrl    String
@@ -139,7 +139,7 @@ model Track {
 }
 
 model Meditations {
-  id            String @id @default(uuid())
+  id            String @id @unique @default(uuid())
   user          User   @relation("UserMeditations", fields: [userId], references: [id])
   userId        String
   totalDuration Int    @default(0)
@@ -149,10 +149,11 @@ model Meditations {
 }
 
 model Badge {
-  id                      String       @id @default(uuid())
+  id                      String       @id @unique @default(uuid())
   title                   String
-  description             String
-  imageUrl                String
+  description             String       @db.VarChar(255)
+  imageUrl                String?
+  activityType            String
   requiredCountOrDuration Int
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt

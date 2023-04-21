@@ -63,8 +63,9 @@ export class GamificationInterceptor implements NestInterceptor {
         // call getEarnedBadge function to get the earned badge
         const earnedBadge = await getEarnedBadge.call(
           this,
-          path,
           userId,
+          path,
+          request,
           this.prisma,
         );
 
