@@ -151,7 +151,7 @@ model Meditations {
 model Badge {
   id                      String       @id @unique @default(uuid())
   title                   String
-  description             String
+  description             String       @db.VarChar(255)
   imageUrl                String?
   activityType            String
   requiredCountOrDuration Int
