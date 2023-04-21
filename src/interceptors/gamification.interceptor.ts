@@ -65,6 +65,7 @@ export class GamificationInterceptor implements NestInterceptor {
           this,
           userId,
           path,
+          request,
           this.prisma,
         );
 

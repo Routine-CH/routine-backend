@@ -1,8 +1,10 @@
+import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { differenceInCalendarDays } from 'date-fns';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { jwtSecret } from '../constants';
 import { BadgeInfo } from '../return-types.ts/types';
+import { CustomRequest } from '../types';
 
 export function getUserIdFromToken(
   token: string,
@@ -20,6 +22,7 @@ export function getUserIdFromToken(
 export async function getEarnedBadge(
   userId: string,
   path: string,
+  request: CustomRequest,
   prisma: PrismaService,
 ) {
   if (
@@ -34,8 +37,12 @@ export async function getEarnedBadge(
       : 'journals';
 
     const count: number = await getRecordCount(userId, tableName, prisma);
-    if ([10, 25, 50, 75, 100].includes(count)) {
-      return await assignBadge.call(this, userId, count, tableName);
+
+    // increment count by 1 to check if user has earned a badge
+    const incrementedCount = count + 1;
+
+    if ([10, 25, 50, 75, 100].includes(incrementedCount)) {
+      return await assignBadge.call(this, userId, incrementedCount, tableName);
     }
   } else if (
     path.startsWith('/meditations') ||
@@ -45,9 +52,22 @@ export async function getEarnedBadge(
       ? 'meditations'
       : 'pomodoro-timers';
 
+    // get currentDuration from request body
+    const currentDuration = request.body.durationInSeconds;
+
+    // get TotalDuration from database
     const totalDuration = await getTotalDuration(userId, tableName, prisma);
-    if ([1800, 3600, 7200, 10800, 14400].includes(totalDuration)) {
-      return await assignBadge.call(this, userId, totalDuration, tableName);
+
+    // increment totalduration by currentDuration to check if user has earned a badge
+    const incrementedTotalDuration = totalDuration + currentDuration;
+
+    if ([1800, 3600, 7200, 10800, 14400].includes(incrementedTotalDuration)) {
+      return await assignBadge.call(
+        this,
+        userId,
+        incrementedTotalDuration,
+        tableName,
+      );
     }
   } else if (path.startsWith('/auth/auth-check')) {
     await updateStreak(userId, prisma);
@@ -113,13 +133,13 @@ async function getTotalDuration(
 
     switch (tableName) {
       case 'meditations':
-        durations = await prisma.meditations.findFirst({
+        durations = await prisma.meditations.findMany({
           where: { userId: userId },
           select: { totalDuration: true },
         });
         break;
       case 'pomodoro-timers':
-        durations = await prisma.pomodoroTimers.findFirst({
+        durations = await prisma.pomodoroTimers.findMany({
           where: { userId: userId },
           select: { totalDuration: true },
         });
@@ -146,108 +166,11 @@ async function getTotalDuration(
   }
 }
 
-// check loginstreaks
-async function checkLoginStreaks(userId: string, prisma: PrismaService) {
-  const userStreaks = await prisma.userStreaks.findFirst({
-    where: { userId: userId },
-  });
-
-  if (!userStreaks) {
-    return null;
-  }
-
-  const loginStreakThresholds = [7, 14, 21, 28, 35];
-  const loginCountThresholds = [10, 25, 50, 75, 100];
-
-  // assign badges based on the login streaks or login count
-  if (loginStreakThresholds.includes(userStreaks.streakCount)) {
-    return await assignBadge.call(
-      this,
-      userId,
-      userStreaks.streakCount,
-      'login-streak',
-    );
-  } else if (loginCountThresholds.includes(userStreaks.loginCount)) {
-    return await assignBadge.call(
-      this,
-      userId,
-      userStreaks.loginCount,
-      'login-count',
-    );
-  }
-
-  return null;
-}
-
-// asign badge function
-async function assignBadge(
-  userId: string,
-  countOrDuration: number,
-  activityType: string,
-): Promise<BadgeInfo | null> {
-  // get all badges that meet the count or the duration
-  const eligibleBadges = await this.prisma.badge.findMany({
-    where: {
-      requiredCountOrDuration: countOrDuration,
-      activityType: activityType,
-    },
-  });
-
-  // if no eligibla badges are found
-  if (eligibleBadges.length === 0) {
-    return null;
-  }
-
-  // find a badge that the user has not earned yet
-  let unassignedBadge = null;
-  for (const badge of eligibleBadges) {
-    const userBadge = await this.prisma.userBadges.findFirst({
-      where: {
-        userId: userId,
-        badgeId: badge.id,
-      },
-    });
-    if (!userBadge) {
-      unassignedBadge = badge;
-      break;
-    }
-  }
-
-  // assign badge to user if an unassigned badge is found
-  if (unassignedBadge) {
-    await this.prisma.userBadges.create({
-      data: {
-        userId: userId,
-        badgeId: unassignedBadge.id,
-      },
-    });
-
-    return {
-      title: unassignedBadge.title,
-      description: unassignedBadge.description,
-      imageUrl: unassignedBadge.image,
-    };
-  }
-
-  // if user badge is found, return null
-  return null;
-}
-
-export async function awardExperiencePoints(
-  userId: string,
-  xp: number,
-): Promise<void> {
-  await this.prisma.user.update({
-    where: { id: userId },
-    data: { experience: { increment: xp } },
-  });
-}
-
 export async function updateStreak(userId: string, prisma: PrismaService) {
   const currentDate = new Date();
 
   // check existing record
-  const userStreak = await this.prisma.userStreaks.findFirst({
+  const userStreak = await prisma.userStreaks.findFirst({
     where: {
       userId: userId,
     },
@@ -301,5 +224,160 @@ export async function updateStreak(userId: string, prisma: PrismaService) {
         loginCount: 1,
       },
     });
+  }
+}
+
+// check loginstreaks
+async function checkLoginStreaks(userId: string, prisma: PrismaService) {
+  const userStreaks = await prisma.userStreaks.findFirst({
+    where: { userId: userId },
+  });
+
+  if (!userStreaks) {
+    return null;
+  }
+
+  const loginStreakThresholds = [7, 14, 21, 28, 35];
+  const loginCountThresholds = [10, 25, 50, 75, 100];
+
+  // assign badges based on the login streaks or login count
+  if (loginStreakThresholds.includes(userStreaks.streakCount)) {
+    return await assignBadge.call(
+      this,
+      userId,
+      userStreaks.streakCount,
+      'login-streak',
+      prisma,
+    );
+  } else if (loginCountThresholds.includes(userStreaks.loginCount)) {
+    return await assignBadge.call(
+      this,
+      userId,
+      userStreaks.loginCount,
+      'login-count',
+      prisma,
+    );
+  }
+
+  return null;
+}
+
+// asign badge function
+async function assignBadge(
+  userId: string,
+  countOrDuration: number,
+  activityType: string,
+  prisma?: PrismaService,
+): Promise<BadgeInfo | null> {
+  if (prisma) {
+    // get all badges that meet the count or the duration
+    const eligibleBadges = await prisma.badge.findMany({
+      where: {
+        requiredCountOrDuration: countOrDuration,
+        activityType: activityType,
+      },
+    });
+
+    // if no eligibla badges are found
+    if (eligibleBadges.length === 0) {
+      return null;
+    }
+
+    // find a badge that the user has not earned yet
+    let unassignedBadge = null;
+    for (const badge of eligibleBadges) {
+      const userBadge = await prisma.userBadges.findFirst({
+        where: {
+          userId: userId,
+          badgeId: badge.id,
+        },
+      });
+      if (!userBadge) {
+        unassignedBadge = badge;
+        break;
+      }
+    }
+
+    // assign badge to user if an unassigned badge is found
+    if (unassignedBadge) {
+      await prisma.userBadges.create({
+        data: {
+          userId: userId,
+          badgeId: unassignedBadge.id,
+        },
+      });
+
+      return {
+        title: unassignedBadge.title,
+        description: unassignedBadge.description,
+        imageUrl: unassignedBadge.image,
+      };
+    }
+  } else {
+    // get all badges that meet the count or the duration
+    const eligibleBadges = await this.prisma.badge.findMany({
+      where: {
+        requiredCountOrDuration: countOrDuration,
+        activityType: activityType,
+      },
+    });
+
+    // if no eligibla badges are found
+    if (eligibleBadges.length === 0) {
+      return null;
+    }
+
+    // find a badge that the user has not earned yet
+    let unassignedBadge = null;
+    for (const badge of eligibleBadges) {
+      const userBadge = await this.prisma.userBadges.findFirst({
+        where: {
+          userId: userId,
+          badgeId: badge.id,
+        },
+      });
+      if (!userBadge) {
+        unassignedBadge = badge;
+        break;
+      }
+    }
+
+    // assign badge to user if an unassigned badge is found
+    if (unassignedBadge) {
+      await this.prisma.userBadges.create({
+        data: {
+          userId: userId,
+          badgeId: unassignedBadge.id,
+        },
+      });
+
+      return {
+        title: unassignedBadge.title,
+        description: unassignedBadge.description,
+        imageUrl: unassignedBadge.image,
+      };
+    }
+  }
+
+  // if user badge is found, return null
+  return null;
+}
+
+export async function awardExperiencePoints(
+  userId: string,
+  xp: number,
+): Promise<void | BadRequestException> {
+  // check if user exists
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (user) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { experience: { increment: xp } },
+    });
+  } else {
+    return new BadRequestException('User not found');
   }
 }

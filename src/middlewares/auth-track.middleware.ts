@@ -32,7 +32,6 @@ export class AuthTrackMiddleware implements NestMiddleware {
         // call updateStreak function
         await updateStreak.call(this, userId, this.prisma);
       } else {
-        console.log('User ID not found in token');
         return res.status(401).json({ message: 'Unauthorized' });
       }
       next();
