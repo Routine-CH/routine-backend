@@ -57,7 +57,7 @@ export class AuthController {
   }
 
   // logout route
-  @Get('logout')
+  @Post('logout')
   logout(@Res() res: Response) {
     return this.authService.logout(res);
   }

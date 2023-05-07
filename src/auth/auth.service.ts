@@ -1,14 +1,20 @@
 import {
   BadRequestException,
-  HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User as PrismaUser } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
+import { createResponse } from 'src/utils/helper/functions';
+import {
+  ErrorMessages,
+  Messages,
+} from 'src/utils/return-types.ts/response-messages';
 import { User, UserPayload } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
@@ -40,13 +46,7 @@ export class AuthService {
     // check if the token is expired
     const now = Math.floor(Date.now() / 1000);
     if (user.exp && user.exp <= now) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNAUTHORIZED,
-          message: 'Refresh token is invalid',
-        },
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new UnauthorizedException(ErrorMessages.INVALID_REFRESH_TOKEN);
     }
     // generate new tokens
     const payload = { id: user.id, username: user.username };
@@ -71,13 +71,7 @@ export class AuthService {
       where: { username },
     });
     if (userAlreadyExists) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Username already taken. Please try another username.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException(ErrorMessages.USERNAME_TAKEN);
     }
 
     // check if email already exists
@@ -85,13 +79,7 @@ export class AuthService {
       where: { email },
     });
     if (emailAlreadyExists) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'E-Mail already exists. Please try another E-Mail.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException(ErrorMessages.EMAIL_TAKEN);
     }
 
     // save hashed password from the current password
@@ -117,10 +105,10 @@ export class AuthService {
         },
       });
     } else {
-      return new BadRequestException('Something went wrong. Please try again.');
+      throw new BadRequestException(ErrorMessages.GENERAL_EXCEPTION);
     }
 
-    return { statusCode: HttpStatus.CREATED, message: 'Signup was successful' };
+    return createResponse(HttpStatus.CREATED, Messages.SIGNUP_SUCCESS);
   }
 
   // login logic
@@ -132,26 +120,13 @@ export class AuthService {
       where: { username },
     });
     if (!userExists) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          message:
-            'User doesn’t exist. Please check your username and try again.',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException(ErrorMessages.USER_NOT_FOUND);
     }
 
     // compare password
     const isMatch = await this.comparePassword(password, userExists.password);
     if (!isMatch) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          message: `The password you entered is incorrect. Please try again.`,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException(ErrorMessages.PASSWORDS_DO_NOT_MATCH);
     }
 
     // if user exists and password matches
@@ -164,20 +139,12 @@ export class AuthService {
 
       // if no token found
       if (!tokens) {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNAUTHORIZED,
-            message: `Token not found. Please try again.`,
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
+        throw new UnauthorizedException(ErrorMessages.TOKEN_NOT_FOUND);
       }
 
-      return {
-        statusCode: HttpStatus.OK,
-        message: 'Login succesful',
-        data: { ...tokens },
-      };
+      return createResponse(HttpStatus.OK, Messages.LOGIN_SUCCESS, {
+        ...tokens,
+      });
     }
     return null;
   }
@@ -185,7 +152,9 @@ export class AuthService {
   // logout logic
   async logout(res: Response) {
     res.clearCookie('token');
-    return res.send({ statusCode: HttpStatus.OK, message: 'Logout succesful' });
+    res
+      .status(HttpStatus.OK)
+      .send({ statusCode: HttpStatus.OK, message: Messages.LOGOUT_SUCCESS });
   }
 
   // hash password function

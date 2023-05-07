@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -39,9 +41,15 @@ export class GoalsService {
 
     // if no goals are found, throw an error
     if (!goals || goals.length === 0) {
-      throw new NotFoundException(`Oops! No goals found for this week.`);
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          message: 'Opps! No goals found for this week.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
-    return goals;
+    return { statusCode: HttpStatus.OK, data: goals };
   }
 
   // get goals by specific date
@@ -76,7 +84,7 @@ export class GoalsService {
     if (!goals || goals.length === 0) {
       throw new NotFoundException(`Oops! No goals found for this day.`);
     }
-    return goals;
+    return { statusCode: HttpStatus.OK, data: goals };
   }
 
   // get all goals
@@ -102,7 +110,7 @@ export class GoalsService {
       throw new NotFoundException(`Oops! No goals found.`);
     }
 
-    return goals;
+    return { statusCode: HttpStatus.OK, data: goals };
   }
 
   // create goal with the JWT token provided
@@ -153,7 +161,10 @@ export class GoalsService {
     });
     // check if goal was created
     if (goal) {
-      return { message: 'Goal created successfully.' };
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'Goal created successfully.',
+      };
     } else {
       throw new BadRequestException(
         'Oops! Something went wrong. Please try again.',
@@ -187,7 +198,7 @@ export class GoalsService {
       const key = goal.imageUrl.split('.amazonaws.com/')[1];
       goal.imageUrl = await this.s3Service.getSignedUrl(key);
     }
-    return goal;
+    return { statusCode: HttpStatus.OK, data: goal };
   }
 
   // update goal
@@ -255,7 +266,10 @@ export class GoalsService {
 
       // check if goal was updated
       if (editGoal) {
-        return { message: 'Goal updated successfully.' };
+        return {
+          statusCode: HttpStatus.OK,
+          message: 'Goal updated successfully.',
+        };
       } else {
         // if the goal was not updated, throw an error
         throw new BadRequestException(
@@ -304,8 +318,9 @@ export class GoalsService {
       // check if goal was deleted
       if (deleteGoal) {
         return {
+          statusCode: HttpStatus.OK,
           message: `Goal ${goalToDelete.title} was succesfully deleted.`,
-          deleteGoal: deleteGoal,
+          data: deleteGoal,
         };
       } else {
         // if the goal was not deleted, throw an error

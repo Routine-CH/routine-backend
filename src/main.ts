@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import * as timeout from 'connect-timeout';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
@@ -19,6 +20,10 @@ async function bootstrap() {
       skipMissingProperties: true,
     }),
   );
+
+  // set request timeout
+  const requestTimeout = 20 * 1000; // 20 seconds
+  app.use(timeout(requestTimeout));
 
   // cookie parser  middleware
   app.use(cookieParser());
