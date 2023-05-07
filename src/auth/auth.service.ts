@@ -1,8 +1,8 @@
 import {
   BadRequestException,
-  ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User as PrismaUser } from '@prisma/client';
@@ -40,7 +40,13 @@ export class AuthService {
     // check if the token is expired
     const now = Math.floor(Date.now() / 1000);
     if (user.exp && user.exp <= now) {
-      throw new UnauthorizedException('Refresh token is invalid');
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          message: 'Refresh token is invalid',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     // generate new tokens
     const payload = { id: user.id, username: user.username };
@@ -62,21 +68,29 @@ export class AuthService {
 
     // check if user already exists
     const userAlreadyExists = await this.prisma.user.findUnique({
-      where: { username: username },
+      where: { username },
     });
     if (userAlreadyExists) {
-      throw new BadRequestException(
-        'Username already taken. Please try another username.',
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Username already taken. Please try another username.',
+        },
+        HttpStatus.BAD_REQUEST,
       );
     }
 
     // check if email already exists
     const emailAlreadyExists = await this.prisma.user.findUnique({
-      where: { email: email },
+      where: { email },
     });
     if (emailAlreadyExists) {
-      throw new BadRequestException(
-        'E-Mail already exists. Please try another E-Mail.',
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'E-Mail already exists. Please try another E-Mail.',
+        },
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -106,7 +120,7 @@ export class AuthService {
       return new BadRequestException('Something went wrong. Please try again.');
     }
 
-    return { message: 'Signup was successful' };
+    return { statusCode: HttpStatus.CREATED, message: 'Signup was successful' };
   }
 
   // login logic
@@ -115,19 +129,28 @@ export class AuthService {
 
     // check if user already exists
     const userExists = await this.prisma.user.findUnique({
-      where: { username: username },
+      where: { username },
     });
     if (!userExists) {
-      throw new BadRequestException(
-        'User doesn’t exist. Please check your username and try again.',
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          message:
+            'User doesn’t exist. Please check your username and try again.',
+        },
+        HttpStatus.NOT_FOUND,
       );
     }
 
     // compare password
     const isMatch = await this.comparePassword(password, userExists.password);
     if (!isMatch) {
-      throw new BadRequestException(
-        `The password you entered is incorrect. Please try again.`,
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          message: `The password you entered is incorrect. Please try again.`,
+        },
+        HttpStatus.BAD_REQUEST,
       );
     }
 
@@ -141,10 +164,20 @@ export class AuthService {
 
       // if no token found
       if (!tokens) {
-        throw new ForbiddenException('Sorry, you are not authorized');
+        throw new HttpException(
+          {
+            status: HttpStatus.UNAUTHORIZED,
+            message: `Token not found. Please try again.`,
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
-      return { message: 'Login succesful', ...tokens };
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Login succesful',
+        data: { ...tokens },
+      };
     }
     return null;
   }
@@ -152,7 +185,7 @@ export class AuthService {
   // logout logic
   async logout(res: Response) {
     res.clearCookie('token');
-    return res.send({ message: 'Logout succesful' });
+    return res.send({ statusCode: HttpStatus.OK, message: 'Logout succesful' });
   }
 
   // hash password function

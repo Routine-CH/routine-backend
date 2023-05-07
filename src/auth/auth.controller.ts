@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Post,
   Req,
   Res,
@@ -48,7 +49,11 @@ export class AuthController {
   @UseGuards(JwtRefreshTokenAuthGuard)
   async refreshToken(@Req() req: CustomRequest) {
     const tokens = await this.authService.refreshToken(req.user);
-    return { message: 'Refresh token is valid', ...tokens };
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Tokens succesfully refreshed',
+      data: { ...tokens },
+    };
   }
 
   // logout route
