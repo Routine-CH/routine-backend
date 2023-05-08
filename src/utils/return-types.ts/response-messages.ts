@@ -11,12 +11,19 @@ export const ApiResponseMessages = {
       JOURNAL_UPDATED: 'Journal updated successfully',
       JOURNAL_DELETED: (journalTitle: string) =>
         `Journal "${journalTitle}" was succesfully deleted.`,
+      TODO_UPDATED: 'Todo updated successfully',
+      TODO_DELETED: (todoTitle: string) =>
+        `Todo "${todoTitle}" was succesfully deleted.`,
+      USER_UPDATED: 'User updated successfully',
+      USER_DELETED: (username: string) => `User "${username}" was deleted.`,
+      NOTIFICATION_SETTINGS_UPDATED: 'Notification successfully updated',
       MEDITATION_UPDATED: 'Meditation updated successfully',
       POMODORO_TIMER_UPDATED: 'Pomodoro timer updated successfully',
     },
     created_201: {
       GOAL: 'Goal created successfully',
       JOURNAL: 'Journal created successfully',
+      TODO: 'Todo created successfully',
     },
   },
   error: {
@@ -44,6 +51,10 @@ export const ApiResponseMessages = {
       DAILY_JOURNALS: 'Oops! No journals found for this day.',
       JOURNALS: `Oops! You don't have any journals yet.`,
       JOURNAL: 'Oops! Journal not found.',
+      WEEKLY_TODOS: 'Oops! No todos found for this week.',
+      DAILY_TODOS: 'Oops! No todos found for this day.',
+      TODOS: `Oops! You don't have any todos yet.`,
+      TODO: 'Oops! Todo not found.',
       MEDITATIONS: `Oops! You don't have any meditations yet.`,
       POMODORO_TIMERS: `Oops! You don't have any pomodoro timers yet.`,
     },
