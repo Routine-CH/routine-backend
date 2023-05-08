@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { S3Service } from 'src/s3/s3.service';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import {
   CustomRequest,
   NotificationType,
@@ -33,7 +35,7 @@ export class UsersService {
     });
     // if no user is found, throw an error
     if (!user) {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
     }
 
     // generate a signed url for the image if exists
@@ -42,12 +44,12 @@ export class UsersService {
       user.avatarUrl = await this.s3Service.getSignedUrl(key);
     }
 
-    return user;
+    return { data: user };
   }
 
   // get all users
   async getUsers() {
-    return await this.prisma.user.findMany({
+    const result = await this.prisma.user.findMany({
       select: {
         id: true,
         email: true,
@@ -56,6 +58,8 @@ export class UsersService {
         badges: true,
       },
     });
+
+    return { data: result };
   }
 
   // get current authenticated user
@@ -73,7 +77,7 @@ export class UsersService {
 
     // if no user is found, throw an error
     if (!user) {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
     }
 
     // generate a signed url for the image if exists
@@ -82,7 +86,7 @@ export class UsersService {
       user.avatarUrl = await this.s3Service.getSignedUrl(key);
     }
 
-    return user;
+    return { data: user };
   }
 
   async updateUser(
@@ -101,13 +105,13 @@ export class UsersService {
 
     // if no user is found, throw an error
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
     }
 
     // check if userId from token equals the id from the request params
     if (user.id !== userId) {
-      throw new BadRequestException(
-        'You are not authorized to edit this profile.',
+      throw new UnauthorizedException(
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
 
@@ -142,7 +146,9 @@ export class UsersService {
       );
 
       if (!isPasswordValid) {
-        throw new BadRequestException('Invalid old password');
+        throw new BadRequestException(
+          ApiResponseMessages.error.bad_request_400.INVALID_PASSWORD,
+        );
       }
 
       const hashedPassword = await bcrypt.hash(updateUserDto.newPassword, 10);
@@ -156,7 +162,9 @@ export class UsersService {
       });
 
       if (existingUsername) {
-        throw new BadRequestException('Username already taken');
+        throw new BadRequestException(
+          ApiResponseMessages.error.bad_request_400.USERNAME_TAKEN,
+        );
       }
       // update the username in updateData
       updateData.username = updateUserDto.username;
@@ -200,7 +208,9 @@ export class UsersService {
       });
 
       if (existingEmail) {
-        throw new BadRequestException('Email already taken.');
+        throw new BadRequestException(
+          ApiResponseMessages.error.bad_request_400.EMAIL_TAKEN,
+        );
       }
 
       updateData.email = updateUserDto.email;
@@ -216,10 +226,12 @@ export class UsersService {
 
     // check if the user was updated
     if (updateUser) {
-      return { message: 'User updated successfully' };
+      return {
+        message: ApiResponseMessages.success.ok_200.USER_UPDATED,
+      };
     } else {
       throw new BadRequestException(
-        'Oops! Something went wrong. Please try again.',
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
       );
     }
   }
@@ -233,7 +245,7 @@ export class UsersService {
 
     // if no user is found, throw an error
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
     } else {
       const updateData: NotificationUpdateData = {
         [notificationType]: isEnabled,
@@ -275,9 +287,23 @@ export class UsersService {
       const updatedSettings = await this.prisma.notificationSettings.update({
         where: { userId: user.id },
         data: updateData,
+        select: {
+          goalsEmailNotification: true,
+          goalsPushNotification: true,
+          todosEmailNotification: true,
+          todosPushNotification: true,
+          journalsEmailNotification: true,
+          journalsPushNotification: true,
+          muteAllNotifications: true,
+          muteGamification: true,
+        },
       });
 
-      return updatedSettings;
+      return {
+        message:
+          ApiResponseMessages.success.ok_200.NOTIFICATION_SETTINGS_UPDATED,
+        data: updatedSettings,
+      };
     }
   }
 
@@ -386,20 +412,22 @@ export class UsersService {
 
       //check if user was deleted
       if (deleteUser) {
+        const deleteUserMessage =
+          ApiResponseMessages.success.ok_200.USER_DELETED(deleteUser.username);
         return {
-          message: 'User deleted successfully',
-          deletedUser: deleteUser,
+          message: deleteUserMessage,
+          data: deleteUser,
         };
       } else {
         // if user was not deleted, throw an error
         throw new BadRequestException(
-          'Oops! Something went wrong. Please try again',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if user is not the user, throw an error
-      throw new BadRequestException(
-        'You are not authorized to delete this profile.',
+      throw new UnauthorizedException(
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }

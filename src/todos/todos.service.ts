@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { CustomRequest } from 'src/utils/types';
 import { CreateTodoDto, UpdateTodoDto } from './dto/todo.dto';
 
@@ -38,9 +39,11 @@ export class TodosService {
 
     // if no todos are found, throw an error
     if (!todos || todos.length === 0) {
-      throw new NotFoundException(`Oops! No todos found for this week.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.WEEKLY_TODOS,
+      );
     }
-    return todos;
+    return { data: todos };
   }
 
   // get todos by specific date
@@ -73,9 +76,11 @@ export class TodosService {
     });
     // if no todos are found, throw an error
     if (!todos || todos.length === 0) {
-      throw new NotFoundException(`Oops! No todos found for this day.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.DAILY_TODOS,
+      );
     }
-    return todos;
+    return { data: todos };
   }
 
   // get all todos
@@ -96,9 +101,11 @@ export class TodosService {
     });
     // if no todos are found, throw an error
     if (!todos || todos.length === 0) {
-      throw new NotFoundException(`Oops! No todos found.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.TODOS,
+      );
     }
-    return todos;
+    return { data: todos };
   }
 
   // create todo with the JWT token provided
@@ -119,9 +126,11 @@ export class TodosService {
     });
     // check if the todo was created
     if (todo) {
-      return { message: 'Todo created successfully.' };
+      return { message: ApiResponseMessages.success.created_201.TODO };
     } else {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new BadRequestException(
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
+      );
     }
   }
 
@@ -142,9 +151,9 @@ export class TodosService {
     });
     // if no todo is found, throw an error
     if (!todo) {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.TODO);
     }
-    return todo;
+    return { data: todo };
   }
 
   // update todo
@@ -164,7 +173,7 @@ export class TodosService {
 
     // implement check to see if the todo exists
     if (!todoToEdit) {
-      throw new NotFoundException('Oops! Todo not found.');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.TODO);
     }
 
     // check if the user is the owner of the todo
@@ -183,17 +192,17 @@ export class TodosService {
       });
       // check if the todo was updated
       if (editTodo) {
-        return { message: 'Todo updated successfully.' };
+        return { message: ApiResponseMessages.success.ok_200.TODO_UPDATED };
       } else {
         // if the todo was not updated, throw an error
         throw new BadRequestException(
-          'Oops! Something went wrong. Please try again.',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if the user is not the owner of the todo, throw an error
       throw new UnauthorizedException(
-        'You are not authorized to edit this todo.',
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }
@@ -221,20 +230,22 @@ export class TodosService {
       });
       // check if the todo was deleted
       if (deleteTodo) {
+        const todoDeleteMessage =
+          ApiResponseMessages.success.ok_200.TODO_DELETED(deleteTodo.title);
         return {
-          message: `Todo ${todoToDelete.title} was succesfully deleted.`,
-          deleteTodo: deleteTodo,
+          message: todoDeleteMessage,
+          data: deleteTodo,
         };
       } else {
         // if the todo was not deleted, throw an error
         throw new BadRequestException(
-          'Something went wrong. Please try again.',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if the user is not the owner of the todo, throw an error
       throw new BadRequestException(
-        'You are not authorized to delete this todo.',
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }

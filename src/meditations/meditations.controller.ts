@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Post,
   Req,
   UseGuards,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
+import { createResponse } from 'src/utils/helper/functions';
 import { CustomRequest } from 'src/utils/types';
 import { CreateMeditationDto } from './dto/meditation.dto';
 import { MeditationsService } from './meditations.service';
@@ -21,7 +23,10 @@ export class MeditationsController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getMeditationByUserId(@Req() req: CustomRequest) {
-    return await this.meditationsService.getMeditationByUserId(req.user.id);
+    const result = await this.meditationsService.getMeditationByUserId(
+      req.user.id,
+    );
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // post a meditation
@@ -32,9 +37,10 @@ export class MeditationsController {
     @Body() createMeditationDto: CreateMeditationDto,
     @Req() req: CustomRequest,
   ) {
-    return this.meditationsService.upsertMeditation(
+    const result = await this.meditationsService.upsertMeditation(
       createMeditationDto,
       req.user.id,
     );
+    return createResponse(HttpStatus.OK, result.message, result.data);
   }
 }

@@ -1,7 +1,8 @@
 import {
   BadRequestException,
-  ForbiddenException,
+  HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +10,7 @@ import { User as PrismaUser } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { User, UserPayload } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
@@ -40,7 +42,9 @@ export class AuthService {
     // check if the token is expired
     const now = Math.floor(Date.now() / 1000);
     if (user.exp && user.exp <= now) {
-      throw new UnauthorizedException('Refresh token is invalid');
+      throw new UnauthorizedException(
+        ApiResponseMessages.error.bad_request_400.INVALID_REFRESH_TOKEN,
+      );
     }
     // generate new tokens
     const payload = { id: user.id, username: user.username };
@@ -62,21 +66,21 @@ export class AuthService {
 
     // check if user already exists
     const userAlreadyExists = await this.prisma.user.findUnique({
-      where: { username: username },
+      where: { username },
     });
     if (userAlreadyExists) {
       throw new BadRequestException(
-        'Username already taken. Please try another username.',
+        ApiResponseMessages.error.bad_request_400.USERNAME_TAKEN,
       );
     }
 
     // check if email already exists
     const emailAlreadyExists = await this.prisma.user.findUnique({
-      where: { email: email },
+      where: { email },
     });
     if (emailAlreadyExists) {
       throw new BadRequestException(
-        'E-Mail already exists. Please try another E-Mail.',
+        ApiResponseMessages.error.bad_request_400.EMAIL_TAKEN,
       );
     }
 
@@ -103,10 +107,11 @@ export class AuthService {
         },
       });
     } else {
-      return new BadRequestException('Something went wrong. Please try again.');
+      throw new BadRequestException(
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
+      );
     }
-
-    return { message: 'Signup was successful' };
+    return { message: ApiResponseMessages.success.ok_200.SIGNUP };
   }
 
   // login logic
@@ -115,19 +120,17 @@ export class AuthService {
 
     // check if user already exists
     const userExists = await this.prisma.user.findUnique({
-      where: { username: username },
+      where: { username },
     });
     if (!userExists) {
-      throw new BadRequestException(
-        'User doesn’t exist. Please check your username and try again.',
-      );
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
     }
 
     // compare password
     const isMatch = await this.comparePassword(password, userExists.password);
     if (!isMatch) {
       throw new BadRequestException(
-        `The password you entered is incorrect. Please try again.`,
+        ApiResponseMessages.error.bad_request_400.PASSWORDS_DO_NOT_MATCH,
       );
     }
 
@@ -141,10 +144,12 @@ export class AuthService {
 
       // if no token found
       if (!tokens) {
-        throw new ForbiddenException('Sorry, you are not authorized');
+        throw new UnauthorizedException(
+          ApiResponseMessages.error.not_found_404.TOKEN,
+        );
       }
 
-      return { message: 'Login succesful', ...tokens };
+      return { message: ApiResponseMessages.success.ok_200.LOGIN, ...tokens };
     }
     return null;
   }
@@ -152,7 +157,10 @@ export class AuthService {
   // logout logic
   async logout(res: Response) {
     res.clearCookie('token');
-    return res.send({ message: 'Logout succesful' });
+    return {
+      statusCode: HttpStatus.OK,
+      message: ApiResponseMessages.success.ok_200.LOGOUT,
+    };
   }
 
   // hash password function

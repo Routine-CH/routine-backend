@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { CreatePomodoroTimerDto } from './dto/pomodoro-timer.dto';
 
 @Injectable()
@@ -15,10 +16,10 @@ export class PomodoroTimersService {
     // if no pomodoro-timer is found, throw an error
     if (!pomodoroTimer) {
       throw new NotFoundException(
-        'No pomodoro-timer record found for this user.',
+        ApiResponseMessages.error.not_found_404.POMODORO_TIMERS,
       );
     } else {
-      return pomodoroTimer;
+      return { data: pomodoroTimer.totalDuration };
     }
   }
 
@@ -47,7 +48,10 @@ export class PomodoroTimersService {
           },
         },
       });
-      return updatePomodoroDuration;
+      return {
+        message: ApiResponseMessages.success.ok_200.POMODORO_TIMER_UPDATED,
+        data: updatePomodoroDuration.totalDuration,
+      };
     } else {
       // create new pomodoro record
       const newPomodoroRecord = await this.prisma.pomodoroTimers.create({
@@ -56,7 +60,10 @@ export class PomodoroTimersService {
           totalDuration: durationInSeconds,
         },
       });
-      return newPomodoroRecord;
+      return {
+        message: ApiResponseMessages.success.ok_200.POMODORO_TIMER_UPDATED,
+        data: newPomodoroRecord.totalDuration,
+      };
     }
   }
 }
