@@ -1,12 +1,11 @@
 import {
   BadRequestException,
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { CustomRequest } from 'src/utils/types';
 import { S3Service } from './../s3/s3.service';
 import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
@@ -41,15 +40,11 @@ export class GoalsService {
 
     // if no goals are found, throw an error
     if (!goals || goals.length === 0) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          message: 'Opps! No goals found for this week.',
-        },
-        HttpStatus.NOT_FOUND,
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.WEEKLY_GOALS,
       );
     }
-    return { statusCode: HttpStatus.OK, data: goals };
+    return { data: goals };
   }
 
   // get goals by specific date
@@ -82,9 +77,11 @@ export class GoalsService {
     });
     // if no goals are found, throw an error
     if (!goals || goals.length === 0) {
-      throw new NotFoundException(`Oops! No goals found for this day.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.DAILY_GOALS,
+      );
     }
-    return { statusCode: HttpStatus.OK, data: goals };
+    return { data: goals };
   }
 
   // get all goals
@@ -107,10 +104,12 @@ export class GoalsService {
 
     // if no goals are found, throw an error
     if (!goals || goals.length === 0) {
-      throw new NotFoundException(`Oops! No goals found.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.GOALS,
+      );
     }
 
-    return { statusCode: HttpStatus.OK, data: goals };
+    return { data: goals };
   }
 
   // create goal with the JWT token provided
@@ -162,12 +161,11 @@ export class GoalsService {
     // check if goal was created
     if (goal) {
       return {
-        statusCode: HttpStatus.CREATED,
-        message: 'Goal created successfully.',
+        message: ApiResponseMessages.success.created_201.GOAL,
       };
     } else {
       throw new BadRequestException(
-        'Oops! Something went wrong. Please try again.',
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
       );
     }
   }
@@ -190,7 +188,7 @@ export class GoalsService {
     });
     // if no goal is found, throw an error
     if (!goal) {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.GOAL);
     }
 
     // generate a signed url for the image if extists
@@ -198,7 +196,7 @@ export class GoalsService {
       const key = goal.imageUrl.split('.amazonaws.com/')[1];
       goal.imageUrl = await this.s3Service.getSignedUrl(key);
     }
-    return { statusCode: HttpStatus.OK, data: goal };
+    return { data: goal };
   }
 
   // update goal
@@ -219,7 +217,7 @@ export class GoalsService {
 
     // implement check to see if the goal exists
     if (!goalToEdit) {
-      throw new NotFoundException(`Oops! Goal not found.`);
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.GOAL);
     }
 
     // check if the user is the owner of the goal
@@ -267,19 +265,18 @@ export class GoalsService {
       // check if goal was updated
       if (editGoal) {
         return {
-          statusCode: HttpStatus.OK,
-          message: 'Goal updated successfully.',
+          message: ApiResponseMessages.success.ok_200.GOAL_UPDATED,
         };
       } else {
         // if the goal was not updated, throw an error
         throw new BadRequestException(
-          'Oops! Something went wrong. Please try again.',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if the user is not the owner of the goal, throw an error
       throw new UnauthorizedException(
-        'You are not authorized to edit this goal.',
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }
@@ -317,21 +314,23 @@ export class GoalsService {
       });
       // check if goal was deleted
       if (deleteGoal) {
+        const goalDeletedMessage =
+          ApiResponseMessages.success.ok_200.GOAL_DELETED(goalToDelete.title);
+
         return {
-          statusCode: HttpStatus.OK,
-          message: `Goal ${goalToDelete.title} was succesfully deleted.`,
+          message: goalDeletedMessage,
           data: deleteGoal,
         };
       } else {
         // if the goal was not deleted, throw an error
         throw new BadRequestException(
-          'Oops! Something went wrong. Please try again',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if the user is not the owner of the goal, throw an error
       throw new UnauthorizedException(
-        'You are not authorized to delete this goal.',
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }

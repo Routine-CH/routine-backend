@@ -10,7 +10,6 @@ import { User as PrismaUser } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
-
 import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { User, UserPayload } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
@@ -44,7 +43,7 @@ export class AuthService {
     const now = Math.floor(Date.now() / 1000);
     if (user.exp && user.exp <= now) {
       throw new UnauthorizedException(
-        ApiResponseMessages.error.INVALID_REFRESH_TOKEN,
+        ApiResponseMessages.error.bad_request_400.INVALID_REFRESH_TOKEN,
       );
     }
     // generate new tokens
@@ -70,7 +69,9 @@ export class AuthService {
       where: { username },
     });
     if (userAlreadyExists) {
-      throw new BadRequestException(ApiResponseMessages.error.USERNAME_TAKEN);
+      throw new BadRequestException(
+        ApiResponseMessages.error.bad_request_400.USERNAME_TAKEN,
+      );
     }
 
     // check if email already exists
@@ -78,7 +79,9 @@ export class AuthService {
       where: { email },
     });
     if (emailAlreadyExists) {
-      throw new BadRequestException(ApiResponseMessages.error.EMAIL_TAKEN);
+      throw new BadRequestException(
+        ApiResponseMessages.error.bad_request_400.EMAIL_TAKEN,
+      );
     }
 
     // save hashed password from the current password
@@ -105,11 +108,10 @@ export class AuthService {
       });
     } else {
       throw new BadRequestException(
-        ApiResponseMessages.error.GENERAL_EXCEPTION,
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
       );
     }
-
-    return { message: ApiResponseMessages.success.SIGNUP };
+    return { message: ApiResponseMessages.success.ok_200.SIGNUP };
   }
 
   // login logic
@@ -121,14 +123,14 @@ export class AuthService {
       where: { username },
     });
     if (!userExists) {
-      throw new NotFoundException(ApiResponseMessages.error.USER_NOT_FOUND);
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
     }
 
     // compare password
     const isMatch = await this.comparePassword(password, userExists.password);
     if (!isMatch) {
       throw new BadRequestException(
-        ApiResponseMessages.error.PASSWORDS_DO_NOT_MATCH,
+        ApiResponseMessages.error.bad_request_400.PASSWORDS_DO_NOT_MATCH,
       );
     }
 
@@ -143,11 +145,11 @@ export class AuthService {
       // if no token found
       if (!tokens) {
         throw new UnauthorizedException(
-          ApiResponseMessages.error.TOKEN_NOT_FOUND,
+          ApiResponseMessages.error.not_found_404.TOKEN,
         );
       }
 
-      return { message: ApiResponseMessages.success.LOGIN, ...tokens };
+      return { message: ApiResponseMessages.success.ok_200.LOGIN, ...tokens };
     }
     return null;
   }
@@ -157,7 +159,7 @@ export class AuthService {
     res.clearCookie('token');
     return {
       statusCode: HttpStatus.OK,
-      message: ApiResponseMessages.success.LOGOUT,
+      message: ApiResponseMessages.success.ok_200.LOGOUT,
     };
   }
 

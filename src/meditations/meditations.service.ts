@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { CreateMeditationDto } from './dto/meditation.dto';
 
 @Injectable()
@@ -14,9 +15,11 @@ export class MeditationsService {
 
     // if no meditation is found, throw an error
     if (!meditation) {
-      throw new NotFoundException('No meditation record found for this user.');
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.MEDITATIONS,
+      );
     } else {
-      return meditation;
+      return { data: meditation.totalDuration };
     }
   }
 
@@ -43,7 +46,10 @@ export class MeditationsService {
           },
         },
       });
-      return updateMeditationDuration;
+      return {
+        message: ApiResponseMessages.success.ok_200.MEDITATION_UPDATED,
+        data: updateMeditationDuration.totalDuration,
+      };
     } else {
       // create new meditation record
       const newMeditationRecord = await this.prisma.meditations.create({
@@ -52,7 +58,10 @@ export class MeditationsService {
           totalDuration: durationInSeconds,
         },
       });
-      return newMeditationRecord;
+      return {
+        message: ApiResponseMessages.success.ok_200.MEDITATION_UPDATED,
+        data: newMeditationRecord.totalDuration,
+      };
     }
   }
 }

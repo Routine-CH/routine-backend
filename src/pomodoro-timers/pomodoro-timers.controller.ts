@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Post,
   Req,
   UseGuards,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
+import { createResponse } from 'src/utils/helper/functions';
 import { CustomRequest } from 'src/utils/types';
 import { CreatePomodoroTimerDto } from './dto/pomodoro-timer.dto';
 import { PomodoroTimersService } from './pomodoro-timers.service';
@@ -21,9 +23,10 @@ export class PomodoroTimersController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getPomodoroTimerByUserId(@Req() req: CustomRequest) {
-    return await this.pomodoroTimersService.getPomodoroTimerByUserId(
+    const result = await this.pomodoroTimersService.getPomodoroTimerByUserId(
       req.user.id,
     );
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // post a pomodoro timer
@@ -34,9 +37,10 @@ export class PomodoroTimersController {
     @Body() createPomodoroTimerDto: CreatePomodoroTimerDto,
     @Req() req: CustomRequest,
   ) {
-    return this.pomodoroTimersService.upsertPomodoroTimer(
+    const result = await this.pomodoroTimersService.upsertPomodoroTimer(
       createPomodoroTimerDto,
       req.user.id,
     );
+    return createResponse(HttpStatus.OK, result.message, result.data);
   }
 }

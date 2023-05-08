@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
 import { CustomRequest } from 'src/utils/types';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
 
@@ -37,9 +38,11 @@ export class JournalsService {
     });
     // if no journals are found, throw an error
     if (!journals || journals.length === 0) {
-      throw new NotFoundException(`Oops! No journals found for this week.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.WEEKLY_JOURNALS,
+      );
     }
-    return journals;
+    return { data: journals };
   }
 
   // get journals by specific date
@@ -73,9 +76,11 @@ export class JournalsService {
     });
     // if no journals are found, throw an error
     if (!journals || journals.length === 0) {
-      throw new NotFoundException(`Oops! No journals found for this day.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.DAILY_JOURNALS,
+      );
     }
-    return journals;
+    return { data: journals };
   }
 
   // get all journals
@@ -95,7 +100,9 @@ export class JournalsService {
 
     // if no journals are found, throw an error
     if (!allUserJounals || allUserJounals.length === 0) {
-      throw new NotFoundException(`Oops! You don't have any journals yet.`);
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.JOURNALS,
+      );
     }
 
     return allUserJounals;
@@ -120,10 +127,10 @@ export class JournalsService {
     });
     // check if the journal was created
     if (journal) {
-      return { message: 'Journal created successfully.' };
+      return { message: ApiResponseMessages.success.created_201.JOURNAL };
     } else {
       throw new BadRequestException(
-        'Oops! Something went wrong, please try again.',
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
       );
     }
   }
@@ -144,10 +151,12 @@ export class JournalsService {
     });
     // if no journal is found, throw an error
     if (!journal) {
-      throw new BadRequestException('Something went wrong. Please try again.');
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.JOURNAL,
+      );
     }
 
-    return journal;
+    return { data: journal };
   }
 
   // update journal
@@ -163,7 +172,9 @@ export class JournalsService {
 
     // implement a check to see if the journal exists
     if (!journalToEdit) {
-      throw new NotFoundException('Oops! No journal found.');
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.JOURNAL,
+      );
     }
 
     // check if the user is the owner of the journal
@@ -175,17 +186,17 @@ export class JournalsService {
       });
       // check if the journal was updated
       if (editJournal) {
-        return { message: 'Journal updated successfully.' };
+        return { message: ApiResponseMessages.success.ok_200.JOURNAL_UPDATED };
       } else {
         // if the journal was not updated, throw an error
         throw new BadRequestException(
-          'Oops! Something went wrong, please try again.',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if the user is not the owner of the journal, throw an error
       throw new UnauthorizedException(
-        'You are not authorized to edit this journal.',
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }
@@ -209,20 +220,25 @@ export class JournalsService {
       });
       // check if the journal was deleted
       if (deleteJournal) {
+        const journalDeleteMessage =
+          ApiResponseMessages.success.ok_200.GOAL_DELETED(
+            journalToDelete.title,
+          );
+
         return {
-          message: `Journal ${journalToDelete.title} was succesfully deleted`,
-          deleteJournal: deleteJournal,
+          message: journalDeleteMessage,
+          data: deleteJournal,
         };
       } else {
         // if the journal was not deleted, throw an error
         throw new BadRequestException(
-          'Something went wrong, please try again.',
+          ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
       }
     } else {
       // if the user is not the owner of the journal, throw an error
       throw new UnauthorizedException(
-        'You are not authorized to delete this journal.',
+        ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
   }

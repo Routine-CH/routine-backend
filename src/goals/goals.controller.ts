@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -18,6 +19,7 @@ import { diskStorage } from 'multer';
 import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { S3Service } from 'src/s3/s3.service';
+import { createResponse } from 'src/utils/helper/functions';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateGoalRequestDto, UpdateGoalDto } from './dto/goal.dto';
@@ -34,15 +36,17 @@ export class GoalsController {
   // get all goals by selected week
   @Get('week')
   @UseGuards(JwtAuthGuard)
-  getSelectedWeekGoals(@Req() req: CustomRequest) {
-    return this.goalsService.getGoalsBySelectedWeek(req);
+  async getSelectedWeekGoals(@Req() req: CustomRequest) {
+    const result = await this.goalsService.getGoalsBySelectedWeek(req);
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // get all goals by selected day
   @Get('day')
   @UseGuards(JwtAuthGuard)
-  getSelectedDayGoals(@Req() req: CustomRequest) {
-    return this.goalsService.getGoalsBySelectedDay(req);
+  async getSelectedDayGoals(@Req() req: CustomRequest) {
+    const result = await this.goalsService.getGoalsBySelectedDay(req);
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // get all goals
@@ -50,7 +54,7 @@ export class GoalsController {
   @UseGuards(JwtAuthGuard)
   async getGoals(@Req() req: CustomRequest) {
     const goalsAndBadge = await this.goalsService.getAllGoals(req);
-    return goalsAndBadge;
+    return createResponse(HttpStatus.OK, undefined, goalsAndBadge);
   }
 
   // create goal
@@ -82,7 +86,7 @@ export class GoalsController {
     }
 
     const buffer = file ? await fs.readFile(file.path) : undefined;
-    return await this.goalsService.createGoal(
+    const result = await this.goalsService.createGoal(
       buffer,
       file?.mimetype,
       file?.originalname,
@@ -90,13 +94,16 @@ export class GoalsController {
       req,
       this.s3Service,
     );
+
+    return createResponse(HttpStatus.CREATED, result.message);
   }
 
   // get goal by id
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  getGoalById(@Param() params: { id: string }) {
-    return this.goalsService.getGoalById(params.id);
+  async getGoalById(@Param() params: { id: string }) {
+    const result = await this.goalsService.getGoalById(params.id);
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // edit goal
@@ -131,7 +138,7 @@ export class GoalsController {
     updateGoalDto.completed = completed;
 
     const buffer = file ? await fs.readFile(file.path) : undefined;
-    return await this.goalsService.updateGoal(
+    const result = await this.goalsService.updateGoal(
       id,
       buffer,
       file?.mimetype,
@@ -139,12 +146,14 @@ export class GoalsController {
       updateGoalDto,
       req,
     );
+    return createResponse(HttpStatus.OK, result.message);
   }
 
   // delete goal
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   async deleteGoal(@Param('id') id: string, @Req() req: CustomRequest) {
-    return await this.goalsService.deleteGoal(id, req);
+    const result = await this.goalsService.deleteGoal(id, req);
+    return createResponse(HttpStatus.OK, result.message, result.data);
   }
 }

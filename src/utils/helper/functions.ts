@@ -1,12 +1,12 @@
 type ApiResponse<T = unknown> = {
   statusCode: number;
-  message: string;
+  message?: string;
   data: T;
 };
 
 export function createResponse<T = unknown>(
   statusCode: number,
-  message: string,
+  message?: string,
   data?: any,
 ): ApiResponse<T> {
   return {

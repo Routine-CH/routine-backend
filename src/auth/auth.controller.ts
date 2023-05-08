@@ -53,7 +53,7 @@ export class AuthController {
     const responseData = { earnedBadge, experience };
     return createResponse(
       HttpStatus.OK,
-      ApiResponseMessages.success.AUTHCHECK,
+      ApiResponseMessages.success.ok_200.AUTHCHECK,
       responseData,
     );
   }

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -11,6 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
+import { createResponse } from 'src/utils/helper/functions';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
 import { CreateJournalDto, UpdateJournalDto } from './dto/journal.dto';
@@ -23,15 +25,17 @@ export class JournalsController {
   // Get all journals by selected week
   @Get('week')
   @UseGuards(JwtAuthGuard)
-  getSelectedWeekJournals(@Req() req: CustomRequest) {
-    return this.journalsService.getJournalsBySelectedWeek(req);
+  async getSelectedWeekJournals(@Req() req: CustomRequest) {
+    const result = await this.journalsService.getJournalsBySelectedWeek(req);
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // Get all journals by selected day
   @Get('day')
   @UseGuards(JwtAuthGuard)
-  getSelectedDayJournals(@Req() req: CustomRequest) {
-    return this.journalsService.getJournalsBySelectedDay(req);
+  async getSelectedDayJournals(@Req() req: CustomRequest) {
+    const result = await this.journalsService.getJournalsBySelectedDay(req);
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // Get all journals
@@ -39,7 +43,7 @@ export class JournalsController {
   @UseGuards(JwtAuthGuard)
   async getJournals(@Req() req: CustomRequest) {
     const journalsAndBadge = await this.journalsService.getAllJournals(req);
-    return journalsAndBadge;
+    return createResponse(HttpStatus.OK, undefined, journalsAndBadge);
   }
 
   // Post journal
@@ -50,14 +54,19 @@ export class JournalsController {
     @Body() createJournalDto: CreateJournalDto,
     @Req() req: CustomRequest,
   ) {
-    return await this.journalsService.createJournal(createJournalDto, req);
+    const result = await this.journalsService.createJournal(
+      createJournalDto,
+      req,
+    );
+    return createResponse(HttpStatus.CREATED, result.message);
   }
 
   // Get journal by id
   @Get(':id')
   @UseGuards(JwtAuthGuard)
-  getJournalById(@Param() params: { id: string }) {
-    return this.journalsService.getJournalById(params.id);
+  async getJournalById(@Param() params: { id: string }) {
+    const result = await this.journalsService.getJournalById(params.id);
+    return createResponse(HttpStatus.OK, undefined, result.data);
   }
 
   // edit journal
@@ -69,13 +78,19 @@ export class JournalsController {
     @Body() updateJournalDto: UpdateJournalDto,
     @Req() req: CustomRequest,
   ) {
-    return this.journalsService.updateJournal(id, updateJournalDto, req);
+    const result = await this.journalsService.updateJournal(
+      id,
+      updateJournalDto,
+      req,
+    );
+    return createResponse(HttpStatus.OK, result.message);
   }
 
   // Delete journal
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   async deleteJournal(@Param('id') id: string, @Req() req: CustomRequest) {
-    return this.journalsService.deleteJournal(id, req);
+    const result = await this.journalsService.deleteJournal(id, req);
+    return createResponse(HttpStatus.OK, result.message, result.data);
   }
 }
