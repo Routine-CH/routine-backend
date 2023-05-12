@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpStatus,
   Post,
   Req,
@@ -34,6 +35,7 @@ export class AuthController {
 
   // login route
   @Public()
+  @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() dto: LoginUserDto) {
     const result = await this.authService.login(dto);
@@ -72,6 +74,7 @@ export class AuthController {
 
   // logout route
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   async logout(@Res() res: Response) {
     const result = await this.authService.logout(res);
     res
