@@ -22,12 +22,13 @@ export class PomodoroTimersController {
 
   // get pomodor-timer by user id
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getPomodoroTimerByUserId(@Req() req: CustomRequest) {
     const result = await this.pomodoroTimersService.getPomodoroTimerByUserId(
       req.user.id,
     );
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // post a pomodoro timer
@@ -43,6 +44,6 @@ export class PomodoroTimersController {
       createPomodoroTimerDto,
       req.user.id,
     );
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 }

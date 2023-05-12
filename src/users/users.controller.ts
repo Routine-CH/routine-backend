@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   Patch,
@@ -27,30 +28,34 @@ export class UsersController {
 
   // get current authenticated user
   @Get('me')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getAuthenticatedUser(@Req() req: CustomRequest) {
     const result = await this.usersService.getAuthenticatedUser(req.user.id);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // get all users
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getUsers() {
     const result = await this.usersService.getUsers();
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // get user by id
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getUserById(@Param('id') id: string) {
     const result = await this.usersService.getUserById(id);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // update user
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('avatar', { storage: diskStorage({}) }))
   async updateUser(
@@ -68,11 +73,12 @@ export class UsersController {
       file?.originalname,
       req,
     );
-    return createResponse(HttpStatus.OK, result.message);
+    return createResponse(result.message);
   }
 
   // toggle notificationSettings
   @Patch(':id/notification-settings')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async toggleNotification(
     @Param('id') id: string,
@@ -82,14 +88,15 @@ export class UsersController {
       id,
       toggleNotificationDto,
     );
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 
   // delete user
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deleteUser(@Param('id') id: string, @Req() req: CustomRequest) {
     const result = await this.usersService.deleteUser(id, req);
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 }

@@ -27,10 +27,11 @@ export class AuthController {
 
   // signup route
   @Public()
+  @HttpCode(HttpStatus.CREATED)
   @Post('signup')
   async signup(@Body() dto: CreateUserDto) {
     const result = await this.authService.signUp(dto);
-    return createResponse(HttpStatus.CREATED, result.message);
+    return createResponse(result.message);
   }
 
   // login route
@@ -39,7 +40,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginUserDto) {
     const result = await this.authService.login(dto);
-    return createResponse(HttpStatus.OK, result.message, {
+    return createResponse(result.message, {
       access_token: result.access_token,
       refresh_token: result.refresh_token,
     });
@@ -47,6 +48,7 @@ export class AuthController {
 
   // auth check route
   @Get('auth-check')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   async authCheck(@Req() req: CustomRequest) {
@@ -54,7 +56,6 @@ export class AuthController {
     const experience = req.user.experience;
     const responseData = { earnedBadge, experience };
     return createResponse(
-      HttpStatus.OK,
       ApiResponseMessages.success.ok_200.AUTHCHECK,
       responseData,
     );
@@ -62,6 +63,7 @@ export class AuthController {
 
   // Refresh token route
   @Get('refresh-token')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshTokenAuthGuard)
   async refreshToken(@Req() req: CustomRequest) {
     const tokens = await this.authService.refreshToken(req.user);
@@ -77,9 +79,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(@Res() res: Response) {
     const result = await this.authService.logout(res);
-    res
-      .status(result.statusCode)
-      .json(createResponse(result.statusCode, result.message));
+    res.status(result.statusCode).json(createResponse(result.message));
     // return createResponse(result);
   }
 }
