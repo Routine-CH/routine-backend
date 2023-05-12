@@ -109,7 +109,7 @@ export class GoalsService {
       );
     }
 
-    return { data: goals };
+    return goals;
   }
 
   // create goal with the JWT token provided
