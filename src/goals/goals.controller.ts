@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   Post,
@@ -35,30 +36,34 @@ export class GoalsController {
 
   // get all goals by selected week
   @Get('week')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedWeekGoals(@Req() req: CustomRequest) {
     const result = await this.goalsService.getGoalsBySelectedWeek(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // get all goals by selected day
   @Get('day')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayGoals(@Req() req: CustomRequest) {
     const result = await this.goalsService.getGoalsBySelectedDay(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // get all goals
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getGoals(@Req() req: CustomRequest) {
     const goalsAndBadge = await this.goalsService.getAllGoals(req);
-    return createResponse(HttpStatus.OK, undefined, goalsAndBadge);
+    return createResponse(undefined, goalsAndBadge);
   }
 
   // create goal
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
@@ -95,19 +100,21 @@ export class GoalsController {
       this.s3Service,
     );
 
-    return createResponse(HttpStatus.CREATED, result.message);
+    return createResponse(result.message);
   }
 
   // get goal by id
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getGoalById(@Param() params: { id: string }) {
     const result = await this.goalsService.getGoalById(params.id);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // edit goal
   @Put(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   @UseInterceptors(FileInterceptor('image', { storage: diskStorage({}) }))
@@ -146,14 +153,15 @@ export class GoalsController {
       updateGoalDto,
       req,
     );
-    return createResponse(HttpStatus.OK, result.message);
+    return createResponse(result.message);
   }
 
   // delete goal
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deleteGoal(@Param('id') id: string, @Req() req: CustomRequest) {
     const result = await this.goalsService.deleteGoal(id, req);
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 }

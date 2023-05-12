@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   Patch,
@@ -24,30 +25,34 @@ export class JournalsController {
 
   // Get all journals by selected week
   @Get('week')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedWeekJournals(@Req() req: CustomRequest) {
     const result = await this.journalsService.getJournalsBySelectedWeek(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // Get all journals by selected day
   @Get('day')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayJournals(@Req() req: CustomRequest) {
     const result = await this.journalsService.getJournalsBySelectedDay(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // Get all journals
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getJournals(@Req() req: CustomRequest) {
     const journalsAndBadge = await this.journalsService.getAllJournals(req);
-    return createResponse(HttpStatus.OK, undefined, journalsAndBadge);
+    return createResponse(undefined, journalsAndBadge);
   }
 
   // Post journal
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   async createJournal(
@@ -58,19 +63,21 @@ export class JournalsController {
       createJournalDto,
       req,
     );
-    return createResponse(HttpStatus.CREATED, result.message);
+    return createResponse(result.message);
   }
 
   // Get journal by id
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getJournalById(@Param() params: { id: string }) {
     const result = await this.journalsService.getJournalById(params.id);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // edit journal
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   async updateJournal(
@@ -83,14 +90,15 @@ export class JournalsController {
       updateJournalDto,
       req,
     );
-    return createResponse(HttpStatus.OK, result.message);
+    return createResponse(result.message);
   }
 
   // Delete journal
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deleteJournal(@Param('id') id: string, @Req() req: CustomRequest) {
     const result = await this.journalsService.deleteJournal(id, req);
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 }

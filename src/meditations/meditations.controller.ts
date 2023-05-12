@@ -22,12 +22,13 @@ export class MeditationsController {
 
   // get meditation by user id
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getMeditationByUserId(@Req() req: CustomRequest) {
     const result = await this.meditationsService.getMeditationByUserId(
       req.user.id,
     );
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // post a meditation
@@ -43,6 +44,6 @@ export class MeditationsController {
       createMeditationDto,
       req.user.id,
     );
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 }

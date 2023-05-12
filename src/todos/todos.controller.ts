@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   Patch,
@@ -24,30 +25,34 @@ export class TodosController {
 
   // get week's todos
   @Get('week')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedWeekTodos(@Req() req: CustomRequest) {
     const result = await this.todosService.getTodosBySelectedWeek(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // get all todos by selected day
   @Get('day')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayTodos(@Req() req: CustomRequest) {
     const result = await this.todosService.getTodosBySelectedDay(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // get all todos
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getTodos(@Req() req: CustomRequest) {
     const result = await this.todosService.getAllTodos(req);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // post todo
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   async createTodo(
@@ -55,19 +60,21 @@ export class TodosController {
     @Req() req: CustomRequest,
   ) {
     const result = await this.todosService.createTodo(createTodoDto, req);
-    return createResponse(HttpStatus.CREATED, result.message);
+    return createResponse(result.message);
   }
 
   // get todo by id
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getTodoById(@Param() params: { id: string }) {
     const result = await this.todosService.getTodoById(params.id);
-    return createResponse(HttpStatus.OK, undefined, result.data);
+    return createResponse(undefined, result.data);
   }
 
   // edit todo
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
   async updateTodo(
@@ -76,14 +83,15 @@ export class TodosController {
     @Req() req: CustomRequest,
   ) {
     const result = await this.todosService.updateTodo(id, updateTodoDto, req);
-    return createResponse(HttpStatus.OK, result.message);
+    return createResponse(result.message);
   }
 
   // delete todo
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deleteTodo(@Param('id') id: string, @Req() req: CustomRequest) {
     const result = await this.todosService.deleteTodo(id, req);
-    return createResponse(HttpStatus.OK, result.message, result.data);
+    return createResponse(result.message, result.data);
   }
 }
