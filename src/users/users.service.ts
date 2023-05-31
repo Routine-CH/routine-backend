@@ -62,6 +62,15 @@ export class UsersService {
     return { data: result };
   }
 
+  // get all tools
+  async getTools() {
+    const result = await this.prisma.tool.findMany({
+      select: { id: true, titleKey: true, screenName: true },
+    });
+
+    return { data: result };
+  }
+
   // get current authenticated user
   async getAuthenticatedUser(id: string) {
     const user = await this.prisma.user.findUnique({
@@ -73,6 +82,10 @@ export class UsersService {
         avatarUrl: true,
         badges: true,
         notificationSettings: true,
+        userTools: {
+          where: { favourite: true },
+          select: { tool: true },
+        },
       },
     });
 
@@ -305,6 +318,57 @@ export class UsersService {
           ApiResponseMessages.success.ok_200.NOTIFICATION_SETTINGS_UPDATED,
         data: updatedSettings,
       };
+    }
+  }
+
+  // update favourite tools
+  async updateFavouriteTools(toolIds: string[], req: CustomRequest) {
+    // get the user id from the JWT token
+    const userId = req.user.id;
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
+    }
+
+    // delete the current favourite tools
+    await this.prisma.userTools.deleteMany({
+      where: { userId },
+    });
+
+    // connect new ones
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        userTools: {
+          create: toolIds.map((id) => ({
+            tool: { connect: { id } },
+            favourite: true,
+          })),
+        },
+      },
+    });
+
+    // update favourite field
+    await this.prisma.userTools.updateMany({
+      where: {
+        userId: userId,
+        toolId: { in: toolIds },
+      },
+      data: {
+        favourite: true,
+      },
+    });
+
+    if (updatedUser) {
+      return {
+        message: ApiResponseMessages.success.ok_200.USER_UPDATED,
+      };
+    } else {
+      throw new BadRequestException(
+        ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
+      );
     }
   }
 
