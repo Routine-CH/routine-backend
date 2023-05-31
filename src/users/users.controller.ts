@@ -19,6 +19,7 @@ import { createResponse } from 'src/utils/helper/functions';
 import { CustomRequest } from 'src/utils/types';
 import { JwtAuthGuard } from './../auth/jwt.guard';
 import { ToggleNotificationDto } from './dto/toggle-notification.dto';
+import { UpdateFavouriteToolsDto } from './dto/update-favourite-tools.dto';
 import { UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
@@ -41,6 +42,15 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async getUsers() {
     const result = await this.usersService.getUsers();
+    return createResponse(undefined, result.data);
+  }
+
+  // get all tools
+  @Get('tools')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getTools() {
+    const result = await this.usersService.getTools();
     return createResponse(undefined, result.data);
   }
 
@@ -89,6 +99,21 @@ export class UsersController {
       toggleNotificationDto,
     );
     return createResponse(result.message, result.data);
+  }
+
+  // patch favourite tools
+  @Patch(':id/favourite-tools')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async updateFavouriteTools(
+    @Body() updateFavouriteToolsDto: UpdateFavouriteToolsDto,
+    @Req() req: CustomRequest,
+  ) {
+    const result = await this.usersService.updateFavouriteTools(
+      updateFavouriteToolsDto.toolIds,
+      req,
+    );
+    return createResponse(result.message);
   }
 
   // delete user

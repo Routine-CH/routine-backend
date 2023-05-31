@@ -33,8 +33,31 @@ model User {
   userPomodoroTimers   PomodoroTimers[]      @relation("UserPomodoroTimers")
   userMeditations      Meditations[]         @relation("UserMeditations")
   notificationSettings NotificationSettings? @relation("NotificationSettings")
+  userTools            UserTools[]           @relation("UserTools")
 
   @@map("users")
+}
+
+model Tool {
+  id         String      @id @unique @default(uuid())
+  titleKey   String
+  screenName String
+  users      UserTools[]
+
+  @@map("tools")
+}
+
+model UserTools {
+  userId    String
+  user      User    @relation("UserTools", fields: [userId], references: [id])
+  toolId    String
+  tool      Tool    @relation(fields: [toolId], references: [id])
+  favourite Boolean @default(false)
+
+  @@id([userId, toolId])
+  @@index([userId])
+  @@index([toolId])
+  @@map("user_tools")
 }
 
 model NotificationSettings {

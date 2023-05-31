@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsEmail,
   IsOptional,
   IsString,
@@ -26,4 +27,8 @@ export class UpdateUserDto {
   @IsOptional()
   @ValidateIf((o) => o.newPassword !== undefined && o.newPassword !== null)
   newPassword?: string;
+
+  @IsArray()
+  @IsOptional()
+  tools?: string;
 }
