@@ -70,7 +70,6 @@ export class UsersService {
         id: true,
         email: true,
         username: true,
-        password: true,
         avatarUrl: true,
         badges: true,
         notificationSettings: true,

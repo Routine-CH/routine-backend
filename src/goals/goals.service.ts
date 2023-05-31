@@ -22,7 +22,7 @@ export class GoalsService {
     // parse the start and end dates of the selected week from the request body
     const { startOfWeek, endOfWeek } = req.body;
 
-    // get the journals for the selected week
+    // get the goals for the selected week
     const goals = await this.prisma.goal.findMany({
       where: {
         userId: userId,
