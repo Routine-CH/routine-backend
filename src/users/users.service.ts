@@ -80,8 +80,7 @@ export class UsersService {
         email: true,
         username: true,
         avatarUrl: true,
-        badges: true,
-        notificationSettings: true,
+        userGoals: true,
         userTools: {
           where: { favourite: true },
           select: { tool: true },
