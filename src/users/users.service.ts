@@ -81,6 +81,7 @@ export class UsersService {
         username: true,
         avatarUrl: true,
         userGoals: true,
+        createdAt: true,
         userTools: {
           where: { favourite: true },
           select: { tool: true },
