@@ -34,6 +34,7 @@ model User {
   userMeditations      Meditations[]         @relation("UserMeditations")
   notificationSettings NotificationSettings? @relation("NotificationSettings")
   userTools            UserTools[]           @relation("UserTools")
+  Note                 Note[]                @relation("UserNotes")
 
   @@map("users")
 }
@@ -138,6 +139,32 @@ model Todo {
   @@index([userId])
   @@index([goalId])
   @@map("todos")
+}
+
+model Note {
+  id          String   @id @unique @default(uuid())
+  user        User     @relation("UserNotes", fields: [userId], references: [id])
+  userId      String
+  title       String
+  description String
+  images      Image[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("notes")
+}
+
+model Image {
+  id        String   @id @unique @default(uuid())
+  note      Note?    @relation(fields: [noteId], references: [id])
+  noteId    String?
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([noteId])
+  @@map("images")
 }
 
 model PomodoroTimers {
