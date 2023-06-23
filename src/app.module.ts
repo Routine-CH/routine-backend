@@ -21,6 +21,7 @@ import { S3Service } from './s3/s3.service';
 import { TodosModule } from './todos/todos.module';
 import { UsersModule } from './users/users.module';
 import { SharedModule } from './utils/modules/shared-module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SharedModule } from './utils/modules/shared-module';
     PomodoroTimersModule,
     MeditationsModule,
     SharedModule,
+    NotesModule,
   ],
   controllers: [AppController, PomodoroTimersController],
   providers: [
