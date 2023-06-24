@@ -97,6 +97,7 @@ export class TodosService {
         id: true,
         title: true,
         plannedDate: true,
+        createdAt: true,
       },
     });
     // if no todos are found, throw an error

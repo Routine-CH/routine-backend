@@ -22,6 +22,7 @@ import { TodosModule } from './todos/todos.module';
 import { UsersModule } from './users/users.module';
 import { SharedModule } from './utils/modules/shared-module';
 import { NotesModule } from './notes/notes.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { NotesModule } from './notes/notes.module';
     MeditationsModule,
     SharedModule,
     NotesModule,
+    CalendarModule,
   ],
   controllers: [AppController, PomodoroTimersController],
   providers: [
