@@ -170,7 +170,17 @@ export class NotesService {
     if (!note) {
       throw new NotFoundException(ApiResponseMessages.error.not_found_404.NOTE);
     }
-    return { data: note };
+
+    if (note.images) {
+      for (const image of note.images) {
+        const key = image.imageUrl.split('.amazonaws.com/')[1];
+        image.imageUrl = await this.s3Service.getSignedUrl(key);
+      }
+    }
+
+    return {
+      data: note,
+    };
   }
 
   async updateNote(

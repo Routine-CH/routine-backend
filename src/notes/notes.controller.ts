@@ -68,7 +68,7 @@ export class NotesController {
       images,
       req.user,
     );
-    return createResponse(result.message);
+    return createResponse(result.message, result.data);
   }
 
   // get note by id
