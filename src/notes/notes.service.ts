@@ -33,6 +33,12 @@ export class NotesService {
         id: true,
         title: true,
         description: true,
+        images: {
+          select: {
+            id: true,
+            imageUrl: true,
+          },
+        },
         createdAt: true,
       },
     });
@@ -71,6 +77,12 @@ export class NotesService {
         id: true,
         title: true,
         description: true,
+        images: {
+          select: {
+            id: true,
+            imageUrl: true,
+          },
+        },
         createdAt: true,
       },
     });
@@ -97,9 +109,24 @@ export class NotesService {
         id: true,
         title: true,
         description: true,
+        images: {
+          select: {
+            id: true,
+            imageUrl: true,
+          },
+        },
         createdAt: true,
       },
     });
+
+    for (const note of notes) {
+      if (note.images) {
+        for (const image of note.images) {
+          const key = image.imageUrl.split('.amazonaws.com/')[1];
+          image.imageUrl = await this.s3Service.getSignedUrl(key);
+        }
+      }
+    }
 
     // if no notes are found, throw an error
     if (!notes || notes.length === 0) {
@@ -160,6 +187,7 @@ export class NotesService {
         description: true,
         images: {
           select: {
+            id: true,
             imageUrl: true,
           },
         },
