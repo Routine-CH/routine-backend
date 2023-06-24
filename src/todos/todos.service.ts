@@ -109,6 +109,55 @@ export class TodosService {
     return { data: todos };
   }
 
+  // get future todos
+  async getFutureTodos(req: CustomRequest) {
+    // get the user id from the JWT token
+    const userId = req.user.id;
+
+    // get current date
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    // get all future todos
+    const todos = await this.prisma.todo.findMany({
+      where: {
+        userId: userId,
+        plannedDate: {
+          gt: currentDate,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        plannedDate: true,
+        createdAt: true,
+      },
+      orderBy: {
+        plannedDate: 'asc', // order by plannedDate to make sure todos are sequential
+      },
+    });
+
+    // if no todos are found, throw an error
+    if (!todos || todos.length === 0) {
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.FUTURE_TODOS,
+      );
+    }
+
+    // Group todos by plannedDate
+    const groupedTodos = todos.reduce((acc, todo) => {
+      // convert date to YYYY-MM-DD format
+      const date = todo.plannedDate.toISOString().split('T')[0];
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(todo);
+      return acc;
+    }, {});
+
+    return { data: groupedTodos };
+  }
+
   // create todo with the JWT token provided
   async createTodo(createTodoDto: CreateTodoDto, req: CustomRequest) {
     const { title, description, plannedDate } = createTodoDto;

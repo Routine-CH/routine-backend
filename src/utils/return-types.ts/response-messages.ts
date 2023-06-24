@@ -59,6 +59,7 @@ export const ApiResponseMessages = {
       DAILY_TODOS: 'Oops! No todos found for this day.',
       TODOS: `Oops! You don't have any todos yet.`,
       TODO: 'Oops! Todo not found.',
+      FUTURE_TODOS: 'Good job! You have no future todos.',
       WEEKLY_NOTES: 'Opps! No notes found for this week.',
       DAILY_NOTES: 'Oops! No notes found for this day.',
       NOTES: `Oops! You don't have any Notes yet.`,

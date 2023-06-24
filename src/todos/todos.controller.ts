@@ -50,6 +50,15 @@ export class TodosController {
     return createResponse(undefined, result.data);
   }
 
+  // get future todos
+  @Get('upcoming')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getFutureTodos(@Req() req: CustomRequest) {
+    const result = await this.todosService.getFutureTodos(req);
+    return createResponse(undefined, result.data);
+  }
+
   // post todo
   @Post()
   @HttpCode(HttpStatus.CREATED)
