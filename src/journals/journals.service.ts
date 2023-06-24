@@ -105,7 +105,7 @@ export class JournalsService {
       );
     }
 
-    return { data: allUserJounals };
+    return allUserJounals;
   }
 
   // create journal with the JWT token provided

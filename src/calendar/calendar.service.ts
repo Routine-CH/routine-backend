@@ -21,9 +21,9 @@ export class CalendarService {
     const journalsResponse = await this.journalsService.getAllJournals(req);
 
     // extract data arrays from responses
-    const goals = goalsResponse.data;
+    const goals = goalsResponse;
     const todos = todosResponse.data;
-    const journals = journalsResponse.data;
+    const journals = journalsResponse;
 
     // initialize aggregation
     const aggregatedData = {};
