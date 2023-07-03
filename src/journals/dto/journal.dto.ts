@@ -1,4 +1,17 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+
+export class MoodDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+  type: string;
+}
 
 export class CreateJournalDto {
   @IsString()
@@ -6,9 +19,9 @@ export class CreateJournalDto {
   @MinLength(5)
   public title: string;
 
-  @IsString()
-  @IsNotEmpty()
-  public mood: string;
+  @Type(() => MoodDto)
+  @ValidateNested({ each: true })
+  public moods: MoodDto[];
 
   @IsString()
   @IsNotEmpty()
@@ -21,6 +34,10 @@ export class CreateJournalDto {
   @IsString()
   @IsNotEmpty()
   public toImprove: string;
+
+  @IsString()
+  @IsNotEmpty()
+  public thoughtsAndIdeas: string;
 }
 
 export class UpdateJournalDto extends CreateJournalDto {}

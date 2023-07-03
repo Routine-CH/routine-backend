@@ -6,8 +6,8 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Patch,
   Post,
+  Put,
   Req,
   UseGuards,
   UseInterceptors,
@@ -50,6 +50,15 @@ export class JournalsController {
     return createResponse(undefined, journalsAndBadge);
   }
 
+  // get journal moods
+  @Get('moods')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getJournalMoods() {
+    const result = await this.journalsService.getJournalMoods();
+    return createResponse(undefined, result.data);
+  }
+
   // Post journal
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -76,7 +85,7 @@ export class JournalsController {
   }
 
   // edit journal
-  @Patch(':id')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
