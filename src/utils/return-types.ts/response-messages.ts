@@ -55,6 +55,7 @@ export const ApiResponseMessages = {
       DAILY_JOURNALS: 'Oops! No journals found for this day.',
       JOURNALS: `Oops! You don't have any journals yet.`,
       JOURNAL: 'Oops! Journal not found.',
+      JOURNAL_MOODS: 'Oops! No moods found.',
       WEEKLY_TODOS: 'Oops! No todos found for this week.',
       DAILY_TODOS: 'Oops! No todos found for this day.',
       TODOS: `Oops! You don't have any todos yet.`,

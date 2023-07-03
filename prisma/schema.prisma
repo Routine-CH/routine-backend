@@ -92,19 +92,40 @@ model UserStreaks {
 }
 
 model Journal {
-  id              String   @id @unique @default(uuid())
-  user            User     @relation("UserJournals", fields: [userId], references: [id])
-  userId          String
-  title           String
-  mood            String
-  moodDescription String
-  activity        String
-  toImprove       String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String        @id @unique @default(uuid())
+  user             User          @relation("UserJournals", fields: [userId], references: [id])
+  userId           String
+  title            String
+  journalMoods     JournalMood[] @relation
+  moodDescription  String
+  activity         String
+  toImprove        String
+  thoughtsAndIdeas String
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([userId])
   @@map("journals")
+}
+
+model Mood {
+  id           String        @id @unique @default(uuid())
+  type         MoodType
+  journalMoods JournalMood[]
+
+  @@map("moods")
+}
+
+model JournalMood {
+  mood      Mood    @relation(fields: [moodId], references: [id])
+  moodId    String
+  journal   Journal @relation(fields: [journalId], references: [id])
+  journalId String
+
+  @@id([moodId, journalId])
+  @@index([moodId])
+  @@index([journalId])
+  @@map("journal_moods")
 }
 
 model Goal {
@@ -223,4 +244,13 @@ model UserBadges {
   @@index([userId])
   @@index([badgeId])
   @@map("user_badges")
+}
+
+enum MoodType {
+  angry
+  frustrated
+  happy
+  relaxed
+  glum
+  sad
 }

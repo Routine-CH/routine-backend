@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
+export async function badgeSeed() {
   // MEDITATION BADGES
   const meditationBadge1 = await prisma.badge.upsert({
     where: { id: 'cf6a30c1-0337-41f3-8b25-bc10a31f9877' },
@@ -579,9 +579,3 @@ async function main() {
     journalsBadge5,
   });
 }
-
-main()
-  .catch((e) => console.error(e))
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

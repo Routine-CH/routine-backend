@@ -42,7 +42,8 @@
     "passport-local": "^1.0.0",
     "prisma": "^4.13.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -90,6 +91,6 @@
     "testEnvironment": "node"
   },
   "prisma": {
-    "seed": "ts-node prisma/badge-seed.ts"
+    "seed": "ts-node prisma/seed.ts"
   }
 }

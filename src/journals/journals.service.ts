@@ -110,19 +110,30 @@ export class JournalsService {
 
   // create journal with the JWT token provided
   async createJournal(createJournalDto: CreateJournalDto, req: CustomRequest) {
-    const { title, mood, moodDescription, activity, toImprove } =
-      createJournalDto;
+    const {
+      title,
+      moods,
+      moodDescription,
+      activity,
+      toImprove,
+      thoughtsAndIdeas,
+    } = createJournalDto;
     // get the user id from the JWT token
     const userId = req.user.id;
+
+    const journalMoodData = moods.map((moodDto) => {
+      return { mood: { connect: { id: moodDto.id } } };
+    });
     // create the journal
     const journal = await this.prisma.journal.create({
       data: {
         title,
-        mood,
         moodDescription,
         activity,
         toImprove,
+        thoughtsAndIdeas,
         user: { connect: { id: userId } },
+        journalMoods: { create: journalMoodData },
       },
     });
     // check if the journal was created
@@ -142,11 +153,20 @@ export class JournalsService {
       select: {
         id: true,
         title: true,
-        mood: true,
         moodDescription: true,
         activity: true,
         toImprove: true,
         createdAt: true,
+        journalMoods: {
+          select: {
+            mood: {
+              select: {
+                type: true,
+              },
+            },
+          },
+        },
+        thoughtsAndIdeas: true,
       },
     });
     // if no journal is found, throw an error
@@ -159,6 +179,20 @@ export class JournalsService {
     return { data: journal };
   }
 
+  // get jounral moods
+  async getJournalMoods() {
+    const journalMoods = await this.prisma.mood.findMany();
+
+    // if no journal moods are found, throw an error
+    if (!journalMoods || journalMoods.length === 0) {
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.JOURNAL_MOODS,
+      );
+    }
+
+    return { data: journalMoods };
+  }
+
   // update journal
   async updateJournal(
     id: string,
@@ -168,6 +202,7 @@ export class JournalsService {
     // find the journal to edit
     const journalToEdit = await this.prisma.journal.findUnique({
       where: { id },
+      include: { journalMoods: true },
     });
 
     // implement a check to see if the journal exists
@@ -179,11 +214,36 @@ export class JournalsService {
 
     // check if the user is the owner of the journal
     if (req.user.id === journalToEdit.userId) {
-      // update the journal
+      const {
+        title,
+        moods,
+        moodDescription,
+        activity,
+        toImprove,
+        thoughtsAndIdeas,
+      } = updateJournalDto;
+
+      const journalMoodData = moods.map((moodDto) => {
+        return { mood: { connect: { id: moodDto.id } } };
+      });
+
+      // Update the journal
       const editJournal = await this.prisma.journal.update({
         where: { id },
-        data: updateJournalDto,
+        data: {
+          title,
+          moodDescription,
+          activity,
+          toImprove,
+          thoughtsAndIdeas,
+          journalMoods: {
+            deleteMany: {},
+            create: journalMoodData,
+          },
+        },
+        include: { journalMoods: true },
       });
+
       // check if the journal was updated
       if (editJournal) {
         return { message: ApiResponseMessages.success.ok_200.JOURNAL_UPDATED };
