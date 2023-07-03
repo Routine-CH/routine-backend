@@ -81,6 +81,7 @@ export class UsersService {
         username: true,
         avatarUrl: true,
         userGoals: true,
+        experience: true,
         createdAt: true,
         userTools: {
           where: { favourite: true },
