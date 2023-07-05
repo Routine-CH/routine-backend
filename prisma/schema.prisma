@@ -247,10 +247,15 @@ model UserBadges {
 }
 
 enum MoodType {
-  angry
-  frustrated
-  happy
-  relaxed
-  glum
-  sad
+  fear
+  anger
+  sadness
+  curiosity
+  pride
+  excitement
+  frustration
+  bored
+  rage
+  joy
+  calm
 }
