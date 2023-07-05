@@ -44,7 +44,19 @@ export async function baseSeed() {
     },
   });
 
-  const moodTypes = ['angry', 'frustrated', 'happy', 'relaxed', 'glum', 'sad'];
+  const moodTypes = [
+    'fear',
+    'anger',
+    'sadness',
+    'curiosity',
+    'pride',
+    'excitement',
+    'frustration',
+    'bored',
+    'rage',
+    'joy',
+    'calm',
+  ];
 
   for (const moodType of moodTypes) {
     const moodId = uuidv4();
