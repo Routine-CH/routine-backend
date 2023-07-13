@@ -36,7 +36,6 @@ export class CreateJournalDto {
   public toImprove: string;
 
   @IsString()
-  @IsNotEmpty()
   public thoughtsAndIdeas: string;
 }
 
