@@ -161,6 +161,7 @@ export class JournalsService {
           select: {
             mood: {
               select: {
+                id: true,
                 type: true,
               },
             },
