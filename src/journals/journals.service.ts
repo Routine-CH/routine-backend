@@ -215,41 +215,53 @@ export class JournalsService {
 
     // check if the user is the owner of the journal
     if (req.user.id === journalToEdit.userId) {
-      const {
-        title,
-        moods,
-        moodDescription,
-        activity,
-        toImprove,
-        thoughtsAndIdeas,
-      } = updateJournalDto;
-
-      const journalMoodData = moods.map((moodDto) => {
-        return { mood: { connect: { id: moodDto.id } } };
+      const deletedMoods = await this.prisma.journalMood.deleteMany({
+        where: { journalId: id },
       });
 
-      // Update the journal
-      const editJournal = await this.prisma.journal.update({
-        where: { id },
-        data: {
+      if (deletedMoods) {
+        const {
           title,
+          moods,
           moodDescription,
           activity,
           toImprove,
           thoughtsAndIdeas,
-          journalMoods: {
-            deleteMany: {},
-            create: journalMoodData,
-          },
-        },
-        include: { journalMoods: true },
-      });
+        } = updateJournalDto;
 
-      // check if the journal was updated
-      if (editJournal) {
-        return { message: ApiResponseMessages.success.ok_200.JOURNAL_UPDATED };
+        const journalMoodData = moods.map((moodDto) => {
+          return { mood: { connect: { id: moodDto.id } } };
+        });
+
+        // Update the journal
+        const editJournal = await this.prisma.journal.update({
+          where: { id },
+          data: {
+            title,
+            moodDescription,
+            activity,
+            toImprove,
+            thoughtsAndIdeas,
+            journalMoods: {
+              deleteMany: {},
+              create: journalMoodData,
+            },
+          },
+          include: { journalMoods: true },
+        });
+
+        // check if the journal was updated
+        if (editJournal) {
+          return {
+            message: ApiResponseMessages.success.ok_200.JOURNAL_UPDATED,
+          };
+        } else {
+          // if the journal was not updated, throw an error
+          throw new BadRequestException(
+            ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
+          );
+        }
       } else {
-        // if the journal was not updated, throw an error
         throw new BadRequestException(
           ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
@@ -275,23 +287,34 @@ export class JournalsService {
     });
     // check if the user is the owner of the journal
     if (req.user.id === journalToDelete.userId) {
-      // delete the journal
-      const deleteJournal = await this.prisma.journal.delete({
-        where: { id },
+      // delete all related JournalMoods
+      const deletedMoods = await this.prisma.journalMood.deleteMany({
+        where: { journalId: id },
       });
-      // check if the journal was deleted
-      if (deleteJournal) {
-        const journalDeleteMessage =
-          ApiResponseMessages.success.ok_200.GOAL_DELETED(
-            journalToDelete.title,
-          );
 
-        return {
-          message: journalDeleteMessage,
-          data: deleteJournal,
-        };
+      if (deletedMoods) {
+        // delete the journal
+        const deleteJournal = await this.prisma.journal.delete({
+          where: { id },
+        });
+        // check if the journal was deleted
+        if (deleteJournal) {
+          const journalDeleteMessage =
+            ApiResponseMessages.success.ok_200.GOAL_DELETED(
+              journalToDelete.title,
+            );
+
+          return {
+            message: journalDeleteMessage,
+            data: deleteJournal,
+          };
+        } else {
+          // if the journal was not deleted, throw an error
+          throw new BadRequestException(
+            ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
+          );
+        }
       } else {
-        // if the journal was not deleted, throw an error
         throw new BadRequestException(
           ApiResponseMessages.error.bad_request_400.GENERAL_EXCEPTION,
         );
