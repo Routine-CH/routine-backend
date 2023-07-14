@@ -100,7 +100,7 @@ model Journal {
   moodDescription  String
   activity         String
   toImprove        String
-  thoughtsAndIdeas String
+  thoughtsAndIdeas String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
