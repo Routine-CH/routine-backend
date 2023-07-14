@@ -25,7 +25,6 @@ export class HasMaxFiveImagesValidator implements ValidatorConstraintInterface {
 
 class ImageDto {
   @IsString()
-  @IsNotEmpty()
   public imageUrl: string;
 }
 

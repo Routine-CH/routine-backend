@@ -180,7 +180,7 @@ model Image {
   id        String   @id @unique @default(uuid())
   note      Note?    @relation(fields: [noteId], references: [id])
   noteId    String?
-  imageUrl  String
+  imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
