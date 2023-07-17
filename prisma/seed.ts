@@ -1,9 +1,8 @@
-import { badgeSeed } from './seeds/badge-seed';
 import { baseSeed } from './seeds/base-seed';
 
 async function main() {
   await baseSeed();
-  await badgeSeed();
+  // await badgeSeed();
 }
 
 main()
