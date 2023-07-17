@@ -83,6 +83,11 @@ export class UsersService {
         userGoals: true,
         experience: true,
         createdAt: true,
+        badges: {
+          select: {
+            badge: true,
+          },
+        },
         userTools: {
           where: { favourite: true },
           select: { tool: true },
