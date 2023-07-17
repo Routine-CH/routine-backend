@@ -31,6 +31,18 @@ export class UsersService {
         username: true,
         avatarUrl: true,
         badges: true,
+        notificationSettings: {
+          select: {
+            goalsEmailNotification: true,
+            goalsPushNotification: true,
+            todosEmailNotification: true,
+            todosPushNotification: true,
+            journalsEmailNotification: true,
+            journalsPushNotification: true,
+            muteAllNotifications: true,
+            muteGamification: true,
+          },
+        },
       },
     });
     // if no user is found, throw an error
