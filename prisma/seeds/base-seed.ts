@@ -143,10 +143,10 @@ export async function baseSeed() {
   });
 
   const tool1 = await prisma.tool.upsert({
-    where: { id: '"8fe84749-a5e4-4674-81ed-f255b923c386' },
+    where: { id: '8fe84749-a5e4-4674-81ed-f255b923c386' },
     update: {},
     create: {
-      id: '"8fe84749-a5e4-4674-81ed-f255b923c386',
+      id: '8fe84749-a5e4-4674-81ed-f255b923c386',
       titleKey: 'tool-cards.timer',
       screenName: 'Timer',
     },

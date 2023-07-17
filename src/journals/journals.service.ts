@@ -37,7 +37,7 @@ export class JournalsService {
       },
     });
     // if no journals are found, throw an error
-    if (!journals || journals.length === 0) {
+    if (!journals) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.WEEKLY_JOURNALS,
       );
@@ -75,7 +75,7 @@ export class JournalsService {
       },
     });
     // if no journals are found, throw an error
-    if (!journals || journals.length === 0) {
+    if (!journals) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.DAILY_JOURNALS,
       );
@@ -99,7 +99,7 @@ export class JournalsService {
     });
 
     // if no journals are found, throw an error
-    if (!allUserJounals || allUserJounals.length === 0) {
+    if (!allUserJounals) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.JOURNALS,
       );
@@ -185,7 +185,7 @@ export class JournalsService {
     const journalMoods = await this.prisma.mood.findMany();
 
     // if no journal moods are found, throw an error
-    if (!journalMoods || journalMoods.length === 0) {
+    if (!journalMoods) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.JOURNAL_MOODS,
       );

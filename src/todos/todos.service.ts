@@ -38,7 +38,7 @@ export class TodosService {
     });
 
     // if no todos are found, throw an error
-    if (!todos || todos.length === 0) {
+    if (!todos) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.WEEKLY_TODOS,
       );
@@ -75,7 +75,7 @@ export class TodosService {
       },
     });
     // if no todos are found, throw an error
-    if (!todos || todos.length === 0) {
+    if (!todos) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.DAILY_TODOS,
       );
@@ -102,7 +102,7 @@ export class TodosService {
       },
     });
     // if no todos are found, throw an error
-    if (!todos || todos.length === 0) {
+    if (!todos) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.TODOS,
       );
@@ -140,7 +140,7 @@ export class TodosService {
     });
 
     // if no todos are found, throw an error
-    if (!todos || todos.length === 0) {
+    if (!todos) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.FUTURE_TODOS,
       );

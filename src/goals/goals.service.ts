@@ -39,7 +39,7 @@ export class GoalsService {
     });
 
     // if no goals are found, throw an error
-    if (!goals || goals.length === 0) {
+    if (!goals) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.WEEKLY_GOALS,
       );
@@ -76,7 +76,7 @@ export class GoalsService {
       },
     });
     // if no goals are found, throw an error
-    if (!goals || goals.length === 0) {
+    if (!goals) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.DAILY_GOALS,
       );

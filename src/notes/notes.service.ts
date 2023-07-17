@@ -44,7 +44,7 @@ export class NotesService {
     });
 
     // if no notes are found, throw an error
-    if (!notes || notes.length === 0) {
+    if (!notes) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.WEEKLY_NOTES,
       );
@@ -88,7 +88,7 @@ export class NotesService {
     });
 
     // if no notes are found, throw an error
-    if (!notes || notes.length === 0) {
+    if (!notes) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.DAILY_NOTES,
       );
@@ -129,7 +129,7 @@ export class NotesService {
     }
 
     // if no notes are found, throw an error
-    if (!notes || notes.length === 0) {
+    if (!notes) {
       throw new NotFoundException(
         ApiResponseMessages.error.not_found_404.NOTES,
       );
