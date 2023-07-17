@@ -96,8 +96,9 @@ export class TodosService {
       select: {
         id: true,
         title: true,
+        description: true,
         plannedDate: true,
-        createdAt: true,
+        completed: true,
       },
     });
     // if no todos are found, throw an error
@@ -129,8 +130,9 @@ export class TodosService {
       select: {
         id: true,
         title: true,
+        description: true,
         plannedDate: true,
-        createdAt: true,
+        completed: true,
       },
       orderBy: {
         plannedDate: 'asc', // order by plannedDate to make sure todos are sequential

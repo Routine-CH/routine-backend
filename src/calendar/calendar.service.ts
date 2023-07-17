@@ -37,7 +37,7 @@ export class CalendarService {
     });
 
     todos.forEach((todo) => {
-      const dateKey = todo.createdAt.toISOString().split('T')[0];
+      const dateKey = todo.plannedDate.toISOString().split('T')[0];
       if (!aggregatedData[dateKey]) {
         aggregatedData[dateKey] = { goals: [], todos: [], journals: [] };
       }
