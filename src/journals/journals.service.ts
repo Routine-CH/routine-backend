@@ -46,32 +46,34 @@ export class JournalsService {
   }
 
   // get journals by specific date
-  async getJournalsBySelectedDay(req: CustomRequest) {
+  async getMonthlyJournalsBySelectedDay(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
     // parse the selected day from the request body
     const { selectedDate } = req.body;
-    // get the start and end of the selected date
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const date = new Date(selectedDate);
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
 
     // get the journals for the selected date
     const journals = await this.prisma.journal.findMany({
       where: {
         userId: userId,
         createdAt: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfMonth,
+          lte: endOfMonth,
         },
       },
       select: {
         id: true,
         title: true,
         createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
       },
     });
     // if no journals are found, throw an error

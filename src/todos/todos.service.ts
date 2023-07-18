@@ -47,31 +47,34 @@ export class TodosService {
   }
 
   // get todos by specific date
-  async getTodosBySelectedDay(req: CustomRequest) {
+  async getMonthlyTodosBySelectedDay(req: CustomRequest) {
     // get the user id from the JWT token
     const userId = req.user.id;
 
     // parse the selected date from the request body
     const { selectedDate } = req.body;
-    // get the start and end of the selected date
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const date = new Date(selectedDate);
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
 
     // get the todos for the selected date
     const todos = await this.prisma.todo.findMany({
       where: {
         userId: userId,
         plannedDate: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfMonth,
+          lte: endOfMonth,
         },
       },
       select: {
         id: true,
         title: true,
         plannedDate: true,
+      },
+      orderBy: {
+        plannedDate: 'asc',
       },
     });
     // if no todos are found, throw an error

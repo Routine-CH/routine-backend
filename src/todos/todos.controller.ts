@@ -37,7 +37,7 @@ export class TodosController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayTodos(@Req() req: CustomRequest) {
-    const result = await this.todosService.getTodosBySelectedDay(req);
+    const result = await this.todosService.getMonthlyTodosBySelectedDay(req);
     return createResponse(undefined, result.data);
   }
 

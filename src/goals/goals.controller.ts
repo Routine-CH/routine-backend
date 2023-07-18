@@ -48,7 +48,7 @@ export class GoalsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayGoals(@Req() req: CustomRequest) {
-    const result = await this.goalsService.getGoalsBySelectedDay(req);
+    const result = await this.goalsService.getMonthlyGoalsBySelectedDay(req);
     return createResponse(undefined, result.data);
   }
 

@@ -37,7 +37,9 @@ export class JournalsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayJournals(@Req() req: CustomRequest) {
-    const result = await this.journalsService.getJournalsBySelectedDay(req);
+    const result = await this.journalsService.getMonthlyJournalsBySelectedDay(
+      req,
+    );
     return createResponse(undefined, result.data);
   }
 

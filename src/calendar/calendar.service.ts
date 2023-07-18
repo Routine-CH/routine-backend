@@ -16,14 +16,19 @@ export class CalendarService {
 
   async getCalendarData(req: CustomRequest) {
     // get all the goals, todos, and journals
-    const goalsResponse = await this.goalsService.getAllGoals(req);
-    const todosResponse = await this.todosService.getAllTodos(req);
-    const journalsResponse = await this.journalsService.getAllJournals(req);
+    const goalsResponse = await this.goalsService.getMonthlyGoalsBySelectedDay(
+      req,
+    );
+    const todosResponse = await this.todosService.getMonthlyTodosBySelectedDay(
+      req,
+    );
+    const journalsResponse =
+      await this.journalsService.getMonthlyJournalsBySelectedDay(req);
 
     // extract data arrays from responses
-    const goals = goalsResponse;
+    const goals = goalsResponse.data;
     const todos = todosResponse.data;
-    const journals = journalsResponse;
+    const journals = journalsResponse.data;
 
     // initialize aggregation
     const aggregatedData = {};
