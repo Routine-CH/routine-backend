@@ -1,9 +1,9 @@
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import {
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
+  Post,
   Req,
   UseGuards,
   UseInterceptors,
@@ -17,7 +17,7 @@ import { CalendarService } from './calendar.service';
 export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
 
-  @Get()
+  @Post()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(CacheInterceptor)
