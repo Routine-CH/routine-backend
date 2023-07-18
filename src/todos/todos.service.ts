@@ -54,9 +54,9 @@ export class TodosService {
     // parse the selected date from the request body
     const { selectedDate } = req.body;
     const date = new Date(selectedDate);
-    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
     startOfMonth.setHours(0, 0, 0, 0);
-    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 2, 0);
     endOfMonth.setHours(23, 59, 59, 999);
 
     // get the todos for the selected date

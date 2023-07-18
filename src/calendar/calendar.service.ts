@@ -15,7 +15,6 @@ export class CalendarService {
   ) {}
 
   async getCalendarData(req: CustomRequest) {
-    // get all the goals, todos, and journals
     const goalsResponse = await this.goalsService.getMonthlyGoalsBySelectedDay(
       req,
     );
@@ -25,12 +24,10 @@ export class CalendarService {
     const journalsResponse =
       await this.journalsService.getMonthlyJournalsBySelectedDay(req);
 
-    // extract data arrays from responses
     const goals = goalsResponse.data;
     const todos = todosResponse.data;
     const journals = journalsResponse.data;
 
-    // initialize aggregation
     const aggregatedData = {};
 
     goals.forEach((goal) => {
@@ -57,6 +54,17 @@ export class CalendarService {
       aggregatedData[dateKey].journals.push(journal);
     });
 
-    return { data: aggregatedData };
+    const aggregatedDataArray = Object.keys(aggregatedData).map((dateKey) => {
+      return {
+        date: dateKey,
+        data: aggregatedData[dateKey],
+      };
+    });
+
+    aggregatedDataArray.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+
+    return { data: aggregatedDataArray };
   }
 }
