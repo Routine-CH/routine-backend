@@ -72,6 +72,7 @@ export class TodosService {
         id: true,
         title: true,
         plannedDate: true,
+        completed: true,
       },
       orderBy: {
         plannedDate: 'asc',

@@ -73,6 +73,7 @@ export class GoalsService {
         id: true,
         title: true,
         createdAt: true,
+        completed: true,
       },
       orderBy: {
         createdAt: 'asc',
