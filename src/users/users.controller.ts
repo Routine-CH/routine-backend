@@ -36,6 +36,17 @@ export class UsersController {
     return createResponse(undefined, result.data);
   }
 
+  // get current authenticated user gamification information
+  @Get('me/gamification')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getAuthenticatedUserGamification(@Req() req: CustomRequest) {
+    const result = await this.usersService.getAuthenticatedUserGamification(
+      req.user.id,
+    );
+    return createResponse(undefined, result.data);
+  }
+
   // get all users
   @Get()
   @HttpCode(HttpStatus.OK)

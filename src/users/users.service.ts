@@ -92,7 +92,6 @@ export class UsersService {
         email: true,
         username: true,
         avatarUrl: true,
-        userGoals: true,
         experience: true,
         createdAt: true,
         badges: {
@@ -124,6 +123,90 @@ export class UsersService {
     }
 
     return { data: user };
+  }
+
+  async getAuthenticatedUserGamification(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        username: true,
+        avatarUrl: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ApiResponseMessages.error.not_found_404.USER);
+    }
+
+    const avatarUrl = user.avatarUrl;
+
+    const badgeCount = await this.prisma.userBadges.count({
+      where: { userId: id },
+    });
+
+    const userExperience = await this.prisma.user.findUnique({
+      where: { id: id },
+      select: { experience: true },
+    });
+
+    const userStreakCount = await this.prisma.userStreaks.findMany({
+      where: { userId: id },
+      select: { streakCount: true },
+    });
+
+    const completedTodoCount = await this.prisma.todo.count({
+      where: { userId: id, completed: true },
+    });
+
+    const completedGoalsCount = await this.prisma.goal.count({
+      where: { userId: id, completed: true },
+    });
+
+    const meditationMinutes = await this.prisma.meditations.findMany({
+      where: { userId: id },
+      select: { totalDuration: true },
+    });
+
+    const journalCount = await this.prisma.journal.count({
+      where: { userId: id },
+    });
+
+    const journalDaysThisWeek = await this.prisma.$queryRaw`
+      SELECT
+        DATE(createdAt) as date
+      FROM journals
+      WHERE userId = ${id} AND WEEKOFYEAR(createdAt) = WEEKOFYEAR(NOW())
+    `;
+
+    return {
+      data: {
+        id: user.id,
+        username: user.username,
+        avatarUrl: avatarUrl,
+        createdAt: user.createdAt,
+        badgeCount: badgeCount,
+        badges: await this.prisma.userBadges.findMany({
+          where: { userId: id },
+          include: { badge: true },
+        }),
+        experience: userExperience.experience,
+        userStreakCount: userStreakCount.reduce(
+          (acc, curr) => acc + curr.streakCount,
+          0,
+        ),
+        completedTodoCount: completedTodoCount,
+        completedGoalsCount: completedGoalsCount,
+        meditationMinutes: meditationMinutes.reduce(
+          (acc, curr) => acc + curr.totalDuration,
+          0,
+        ),
+        journalCount: journalCount,
+        // completedTasksThisWeek: completedTasksThisWeek,
+        journalDaysThisWeek: journalDaysThisWeek,
+      },
+    };
   }
 
   async updateUser(
