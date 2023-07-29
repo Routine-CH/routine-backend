@@ -18,7 +18,6 @@ import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages
 import { CustomRequest } from 'src/utils/types';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
-import { JwtRefreshTokenAuthGuard } from './jwt-refresh-token.guard';
 import { JwtAuthGuard } from './jwt.guard';
 
 @Controller('auth')
@@ -51,7 +50,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(GamificationInterceptor)
-  async authCheck(@Req() req: CustomRequest) {
+  public async authCheck(@Req() req: CustomRequest) {
     const earnedBadge = req.user.earnedBadge;
     const experience = req.user.experience;
     const responseData = { earnedBadge, experience };
@@ -62,11 +61,12 @@ export class AuthController {
   }
 
   // Refresh token route
+  @Public()
   @Get('refresh-token')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtRefreshTokenAuthGuard)
   async refreshToken(@Req() req: CustomRequest) {
-    const tokens = await this.authService.refreshToken(req.user);
+    const tokens = await this.authService.refreshToken(req);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Tokens succesfully refreshed',

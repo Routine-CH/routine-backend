@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
 import { ApiResponseMessages } from 'src/utils/return-types.ts/response-messages';
-import { User, UserPayload } from 'src/utils/types';
+import { CustomRequest, UserPayload } from 'src/utils/types';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateUserDto, LoginUserDto } from './dto/auth.dto';
 
@@ -38,16 +38,26 @@ export class AuthService {
   }
 
   // refreshToken logic
-  async refreshToken(user: User) {
-    // check if the token is expired
+  async refreshToken(req: CustomRequest) {
+    const refreshToken = req.headers['x-refresh-token'] as string;
+
+    const verifyRefreshToken = this.jwt.verify(refreshToken, {
+      secret: jwtRefreshTokenSecret,
+    });
+
+    // check if token is expired
     const now = Math.floor(Date.now() / 1000);
-    if (user.exp && user.exp <= now) {
+    if (verifyRefreshToken.exp && verifyRefreshToken.exp <= now) {
       throw new UnauthorizedException(
         ApiResponseMessages.error.bad_request_400.INVALID_REFRESH_TOKEN,
       );
     }
+
     // generate new tokens
-    const payload = { id: user.id, username: user.username };
+    const payload = {
+      id: verifyRefreshToken.id,
+      username: verifyRefreshToken.username,
+    };
     return {
       access_token: this.jwt.sign(payload, {
         secret: jwtSecret,

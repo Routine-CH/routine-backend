@@ -104,6 +104,11 @@ export class UsersService {
           where: { favourite: true },
           select: { tool: true },
         },
+        userLogins: {
+          select: {
+            streakCount: true,
+          },
+        },
       },
     });
 
