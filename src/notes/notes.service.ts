@@ -117,6 +117,9 @@ export class NotesService {
         },
         createdAt: true,
       },
+      orderBy: {
+        updatedAt: 'desc',
+      },
     });
 
     for (const note of notes) {
