@@ -123,9 +123,6 @@ export class TodosService {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // set date to tomorrow
-    currentDate.setDate(currentDate.getDate() + 1);
-
     // get all future todos
     const todos = await this.prisma.todo.findMany({
       where: {
