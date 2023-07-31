@@ -33,7 +33,7 @@ export class JournalsController {
   }
 
   // Get all journals by selected day
-  @Post('day')
+  @Get('day')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getSelectedDayJournals(@Req() req: CustomRequest) {
