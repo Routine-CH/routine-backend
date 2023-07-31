@@ -96,6 +96,20 @@ export class JournalsService {
       select: {
         id: true,
         title: true,
+        moodDescription: true,
+        activity: true,
+        toImprove: true,
+        journalMoods: {
+          select: {
+            mood: {
+              select: {
+                id: true,
+                type: true,
+              },
+            },
+          },
+        },
+        thoughtsAndIdeas: true,
         createdAt: true,
       },
     });
@@ -158,7 +172,6 @@ export class JournalsService {
         moodDescription: true,
         activity: true,
         toImprove: true,
-        createdAt: true,
         journalMoods: {
           select: {
             mood: {
@@ -170,6 +183,7 @@ export class JournalsService {
           },
         },
         thoughtsAndIdeas: true,
+        createdAt: true,
       },
     });
     // if no journal is found, throw an error
