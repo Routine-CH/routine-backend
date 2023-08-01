@@ -101,6 +101,7 @@ export class GoalsService {
       select: {
         id: true,
         title: true,
+        description: true,
         completed: true,
         createdAt: true,
       },
