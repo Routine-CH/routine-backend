@@ -112,6 +112,9 @@ export class JournalsService {
         thoughtsAndIdeas: true,
         createdAt: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
     // if no journals are found, throw an error
