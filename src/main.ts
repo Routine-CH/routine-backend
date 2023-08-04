@@ -22,7 +22,7 @@ async function bootstrap() {
   );
 
   // set request timeout
-  const requestTimeout = 20 * 1000; // 20 seconds
+  const requestTimeout = 30 * 1000; // 20 seconds
   app.use(timeout(requestTimeout));
 
   // cookie parser  middleware

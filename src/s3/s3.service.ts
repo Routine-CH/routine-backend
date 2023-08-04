@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class S3Service {
@@ -19,10 +20,14 @@ export class S3Service {
     mimetype: string,
     key: string,
   ): Promise<string | undefined> {
+    const compressedImageBuffer = await sharp(buffer)
+      .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+      .toBuffer();
+
     const params: AWS.S3.PutObjectRequest = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
-      Body: buffer,
+      Body: compressedImageBuffer,
       ContentType: mimetype,
       ServerSideEncryption: 'aws:kms',
     };
