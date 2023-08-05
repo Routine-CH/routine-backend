@@ -236,6 +236,12 @@ export class NotesService {
         ApiResponseMessages.error.unauthorized_401.UNAUTHORIZED,
       );
     }
+    // Delete all existing images associated with the note
+    await this.prisma.image.deleteMany({
+      where: {
+        noteId: id,
+      },
+    });
 
     const imageUrls = await Promise.all(
       images.map((image) =>
@@ -247,6 +253,7 @@ export class NotesService {
       ),
     );
 
+    // Update the note with the new details and images
     const note = await this.prisma.note.update({
       where: {
         id: id,
