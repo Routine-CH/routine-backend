@@ -128,7 +128,7 @@ export class TodosService {
       where: {
         userId: userId,
         plannedDate: {
-          gt: currentDate,
+          gte: currentDate,
         },
       },
       select: {
