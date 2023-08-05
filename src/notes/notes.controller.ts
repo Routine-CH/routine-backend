@@ -6,8 +6,8 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Patch,
   Post,
+  Put,
   Req,
   UploadedFiles,
   UseGuards,
@@ -81,7 +81,7 @@ export class NotesController {
   }
 
   // edit note by id
-  @Patch(':id')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('images', 5))
