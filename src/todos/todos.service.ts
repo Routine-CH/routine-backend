@@ -71,6 +71,7 @@ export class TodosService {
       select: {
         id: true,
         title: true,
+        description: true,
         plannedDate: true,
         completed: true,
       },
