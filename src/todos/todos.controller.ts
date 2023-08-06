@@ -81,6 +81,15 @@ export class TodosController {
     return createResponse(undefined, result.data);
   }
 
+  // get todos by goalid
+  @Get('goal/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getTodosByGoalId(@Param() params: { id: string }) {
+    const result = await this.todosService.getTodosByGoalId(params.id);
+    return createResponse(undefined, result.data);
+  }
+
   // edit todo
   @Patch(':id')
   @HttpCode(HttpStatus.OK)

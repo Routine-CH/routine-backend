@@ -213,6 +213,30 @@ export class TodosService {
     return { data: todo };
   }
 
+  // get todos by goal id
+  async getTodosByGoalId(goalId: string) {
+    // get the todos by goal id
+    const todos = await this.prisma.todo.findMany({
+      where: {
+        goalId: goalId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        plannedDate: true,
+        completed: true,
+      },
+    });
+    // if no todos are found, throw an error
+    if (!todos) {
+      throw new NotFoundException(
+        ApiResponseMessages.error.not_found_404.TODOS,
+      );
+    }
+    return { data: todos };
+  }
+
   // update todo
   async updateTodo(
     id: string,
