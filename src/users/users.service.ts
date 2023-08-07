@@ -149,6 +149,7 @@ export class UsersService {
     const userBadges = await this.prisma.userBadges.findMany({
       where: { userId: id },
       include: { badge: true },
+      orderBy: { assignedAt: 'desc' },
     });
 
     for (const userBadge of userBadges) {
