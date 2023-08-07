@@ -146,6 +146,18 @@ export class UsersService {
       where: { userId: id },
     });
 
+    const userBadges = await this.prisma.userBadges.findMany({
+      where: { userId: id },
+      include: { badge: true },
+    });
+
+    for (const userBadge of userBadges) {
+      if (userBadge.badge && userBadge.badge.imageUrl) {
+        const key = userBadge.badge.imageUrl.split('.amazonaws.com/')[1];
+        userBadge.badge.imageUrl = await this.s3Service.getSignedUrl(key);
+      }
+    }
+
     const userExperience = await this.prisma.user.findUnique({
       where: { id: id },
       select: { experience: true },
@@ -187,10 +199,7 @@ export class UsersService {
         avatarUrl: avatarUrl,
         createdAt: user.createdAt,
         badgeCount: badgeCount,
-        badges: await this.prisma.userBadges.findMany({
-          where: { userId: id },
-          include: { badge: true },
-        }),
+        badges: userBadges,
         experience: userExperience.experience,
         userStreakCount: userStreakCount.reduce(
           (acc, curr) => acc + curr.streakCount,
