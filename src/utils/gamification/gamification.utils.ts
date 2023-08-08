@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { differenceInCalendarDays } from 'date-fns';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { S3Service } from 'src/s3/s3.service';
 import { jwtSecret } from '../constants';
 import { BadgeInfo } from '../return-types.ts/types';
 import { CustomRequest } from '../types';
@@ -24,6 +25,7 @@ export async function getEarnedBadge(
   path: string,
   request: CustomRequest,
   prisma: PrismaService,
+  s3Service: S3Service,
 ) {
   if (
     path.startsWith('/goals') ||
@@ -42,7 +44,13 @@ export async function getEarnedBadge(
     const incrementedCount = count + 1;
 
     if ([10, 25, 50, 75, 100].includes(incrementedCount)) {
-      return await assignBadge.call(this, userId, incrementedCount, tableName);
+      return await assignBadge.call(
+        this,
+        userId,
+        incrementedCount,
+        tableName,
+        s3Service,
+      );
     }
   } else if (
     path.startsWith('/meditations') ||
@@ -67,11 +75,12 @@ export async function getEarnedBadge(
         userId,
         incrementedTotalDuration,
         tableName,
+        s3Service,
       );
     }
   } else if (path.startsWith('/auth/auth-check')) {
     await updateStreak(userId, prisma);
-    const badge = await checkLoginStreaks(userId, prisma);
+    const badge = await checkLoginStreaks(userId, prisma, s3Service);
     if (badge) {
       return badge;
     }
@@ -228,7 +237,11 @@ export async function updateStreak(userId: string, prisma: PrismaService) {
 }
 
 // check loginstreaks
-async function checkLoginStreaks(userId: string, prisma: PrismaService) {
+async function checkLoginStreaks(
+  userId: string,
+  prisma: PrismaService,
+  s3Service: S3Service,
+) {
   const userStreaks = await prisma.userStreaks.findFirst({
     where: { userId: userId },
   });
@@ -247,6 +260,7 @@ async function checkLoginStreaks(userId: string, prisma: PrismaService) {
       userId,
       userStreaks.streakCount,
       'login-streak',
+      s3Service,
       prisma,
     );
   } else if (loginCountThresholds.includes(userStreaks.loginCount)) {
@@ -255,6 +269,7 @@ async function checkLoginStreaks(userId: string, prisma: PrismaService) {
       userId,
       userStreaks.loginCount,
       'login-count',
+      s3Service,
       prisma,
     );
   }
@@ -267,6 +282,7 @@ async function assignBadge(
   userId: string,
   countOrDuration: number,
   activityType: string,
+  s3Service: S3Service,
   prisma?: PrismaService,
 ): Promise<BadgeInfo | null> {
   // use the passed in prisma instance or the default one
@@ -309,11 +325,19 @@ async function assignBadge(
       },
     });
 
-    return {
+    // Sign the imageUrl if it exists
+    if (unassignedBadge.imageUrl) {
+      const key = unassignedBadge.imageUrl.split('.amazonaws.com/')[1];
+      unassignedBadge.imageUrl = await s3Service.getSignedUrl(key);
+    }
+
+    const badgeInfo = {
       title: unassignedBadge.title,
       description: unassignedBadge.description,
-      imageUrl: unassignedBadge.image,
+      imageUrl: unassignedBadge.imageUrl,
     };
+
+    return badgeInfo;
   }
 
   // if user badge is found, return null

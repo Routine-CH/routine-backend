@@ -143,6 +143,10 @@ export class JournalsService {
     const journalMoodData = moods.map((moodDto) => {
       return { mood: { connect: { id: moodDto.id } } };
     });
+
+    // Check for undefined or empty thoughtsAndIdeas and default to an empty string
+    const sanitizedThoughtsAndIdeas = thoughtsAndIdeas || '';
+
     // create the journal
     const journal = await this.prisma.journal.create({
       data: {
@@ -150,7 +154,7 @@ export class JournalsService {
         moodDescription,
         activity,
         toImprove,
-        thoughtsAndIdeas,
+        thoughtsAndIdeas: sanitizedThoughtsAndIdeas,
         user: { connect: { id: userId } },
         journalMoods: { create: journalMoodData },
       },

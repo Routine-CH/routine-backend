@@ -3,6 +3,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { GamificationInterceptor } from 'src/interceptors/gamification.interceptor';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { S3Service } from 'src/s3/s3.service';
 import { jwtRefreshTokenSecret, jwtSecret } from 'src/utils/constants';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -26,6 +27,7 @@ import { JwtRefreshTokenStrategy, JwtStrategy } from './jwt.strategy';
     AuthService,
     PrismaService,
     JwtStrategy,
+    S3Service,
     JwtRefreshTokenStrategy,
     JwtRefreshTokenAuthGuard,
     GamificationInterceptor,

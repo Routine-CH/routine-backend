@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsNotEmpty,
+  IsOptional,
   IsString,
   MinLength,
   ValidateNested,
@@ -36,6 +37,7 @@ export class CreateJournalDto {
   public toImprove: string;
 
   @IsString()
+  @IsOptional()
   public thoughtsAndIdeas: string;
 }
 

@@ -10,6 +10,7 @@ import { isSameDay } from 'date-fns';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { S3Service } from 'src/s3/s3.service';
 import {
   awardExperiencePoints,
   getEarnedBadge,
@@ -20,7 +21,11 @@ import { CustomRequest } from 'src/utils/types';
 
 @Injectable()
 export class GamificationInterceptor implements NestInterceptor {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+    private s3Service: S3Service,
+  ) {}
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -67,6 +72,7 @@ export class GamificationInterceptor implements NestInterceptor {
           path,
           request,
           this.prisma,
+          this.s3Service,
         );
 
         // assign the earnedBadge to the request object
