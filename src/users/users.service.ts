@@ -395,7 +395,7 @@ export class UsersService {
       } else {
         // if another notification is toggled, set mute all to false
         if (isEnabled) {
-          updateData.muteAllNotifications = false;
+          updateData.muteAllNotifications = true;
         } else {
           // check if all settings are false, set mute all to true
           const settings = await this.prisma.notificationSettings.findUnique({
